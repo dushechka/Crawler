@@ -20,7 +20,7 @@ import org.jsoup.nodes.Node;
  * @author downey
  *
  */
-public class WikiNodeIterable implements Iterable<Node> {
+public class HtmlNodeIterable implements Iterable<Node> {
 
 	private Node root;
 
@@ -29,13 +29,13 @@ public class WikiNodeIterable implements Iterable<Node> {
 	 *
 	 * @param root
 	 */
-	public WikiNodeIterable(Node root) {
+	public HtmlNodeIterable(Node root) {
 	    this.root = root;
 	}
 
 	@Override
 	public Iterator<Node> iterator() {
-		return new WikiNodeIterator(root);
+		return new HtmlNodeIterator(root);
 	}
 
 	/**
@@ -44,7 +44,7 @@ public class WikiNodeIterable implements Iterable<Node> {
 	 * @author downey
 	 *
 	 */
-	private class WikiNodeIterator implements Iterator<Node> {
+	private class HtmlNodeIterator implements Iterator<Node> {
 
 		// this stack keeps track of the Nodes waiting to be visited
 		Deque<Node> stack;
@@ -54,7 +54,7 @@ public class WikiNodeIterable implements Iterable<Node> {
 		 *
 		 * @param node
 		 */
-		public WikiNodeIterator(Node node) {
+		public HtmlNodeIterator(Node node) {
 			stack = new ArrayDeque<>();
 		    stack.push(node);
 		}

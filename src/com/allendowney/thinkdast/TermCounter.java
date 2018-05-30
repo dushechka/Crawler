@@ -1,6 +1,5 @@
 package com.allendowney.thinkdast;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +22,7 @@ public class TermCounter {
 
 	public TermCounter(String label) {
 		this.label = label;
-		this.map = new HashMap<String, Integer>();
+		this.map = new HashMap<>();
 	}
 
 	public String getLabel() {
@@ -62,7 +61,7 @@ public class TermCounter {
 	public void processTree(Node root) {
 		// NOTE: we could use select to find the TextNodes, but since
 		// we already have a tree iterator, let's use it.
-		for (Node node: new WikiNodeIterable(root)) {
+		for (Node node: new HtmlNodeIterable(root)) {
 			if (node instanceof TextNode) {
 				processText(((TextNode) node).text());
 			}
@@ -92,7 +91,6 @@ public class TermCounter {
 	 * @param term
 	 */
 	public void incrementTermCount(String term) {
-		// System.out.println(term);
 		put(term, get(term) + 1);
 	}
 
@@ -135,20 +133,5 @@ public class TermCounter {
 			System.out.println(key + ", " + count);
 		}
 		System.out.println("Total of all counts = " + size());
-	}
-
-	/**
-	 * @param args
-	 * @throws IOException
-	 */
-	public static void main(String[] args) throws IOException {
-		String url = "https://en.wikipedia.org/wiki/Java_(programming_language)";
-
-		WikiFetcher wf = new WikiFetcher();
-		Elements paragraphs = wf.fetchWikipedia(url);
-
-		TermCounter counter = new TermCounter(url.toString());
-		counter.processElements(paragraphs);
-		counter.printCounts();
 	}
 }

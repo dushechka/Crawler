@@ -20,6 +20,7 @@ import redis.clients.jedis.Transaction;
  */
 public class JedisIndex {
 
+	public static final String COLON = ":";
 	private Jedis jedis;
 
 	/**
@@ -88,7 +89,7 @@ public class JedisIndex {
 	 * @return Map from URL to count.
 	 */
 	public Map<String, Integer> getCounts(String term) {
-		Map<String, Integer> map = new HashMap<String, Integer>();
+		Map<String, Integer> map = new HashMap<>();
 		Set<String> urls = getURLs(term);
 		for (String url: urls) {
 			Integer count = getCount(url, term);
@@ -106,7 +107,7 @@ public class JedisIndex {
 	public Map<String, Integer> getCountsFaster(String term) {
 		// convert the set of strings to a list so we get the
 		// same traversal order every time
-		List<String> urls = new ArrayList<String>();
+		List<String> urls = new ArrayList<>();
 		urls.addAll(getURLs(term));
 
 		// construct a transaction to perform all lookups
@@ -118,7 +119,7 @@ public class JedisIndex {
 		List<Object> res = t.exec();
 
 		// iterate the results and make the map
-		Map<String, Integer> map = new HashMap<String, Integer>();
+		Map<String, Integer> map = new HashMap<>();
 		int i = 0;
 		for (String url: urls) {
 			System.out.println(url);
@@ -168,20 +169,20 @@ public class JedisIndex {
 		Transaction t = jedis.multi();
 
 		String url = tc.getLabel();
-		String hashname = termCounterKey(url);
+		String hashName = termCounterKey(url);
 
 		// if this page has already been indexed; delete the old hash
-		t.del(hashname);
+		t.del(hashName);
 
 		// for each term, add an entry in the termcounter and a new
 		// member of the index
 		for (String term: tc.keySet()) {
 			Integer count = tc.get(term);
-			t.hset(hashname, term, count.toString());
+			t.hset(hashName, term, count.toString());
 			t.sadd(urlSetKey(term), url);
 		}
-		List<Object> res = t.exec();
-		return res;
+
+		return t.exec();
 	}
 
 	/**
@@ -212,9 +213,9 @@ public class JedisIndex {
 	 */
 	public Set<String> termSet() {
 		Set<String> keys = urlSetKeys();
-		Set<String> terms = new HashSet<String>();
+		Set<String> terms = new HashSet<>();
 		for (String key: keys) {
-			String[] array = key.split(":");
+			String[] array = key.split(COLON);
 			if (array.length < 2) {
 				terms.add("");
 			} else {
@@ -292,42 +293,5 @@ public class JedisIndex {
 			t.del(key);
 		}
 		t.exec();
-	}
-
-	/**
-	 * @param args
-	 * @throws IOException
-	 */
-	public static void main(String[] args) throws IOException {
-		Jedis jedis = JedisMaker.make();
-		JedisIndex index = new JedisIndex(jedis);
-
-		//index.deleteTermCounters();
-		//index.deleteURLSets();
-		//index.deleteAllKeys();
-		loadIndex(index);
-
-		Map<String, Integer> map = index.getCountsFaster("the");
-		for (Entry<String, Integer> entry: map.entrySet()) {
-			System.out.println(entry);
-		}
-	}
-
-	/**
-	 * Stores two pages in the index for testing purposes.
-	 *
-	 * @return
-	 * @throws IOException
-	 */
-	private static void loadIndex(JedisIndex index) throws IOException {
-		WikiFetcher wf = new WikiFetcher();
-
-		String url = "https://en.wikipedia.org/wiki/Java_(programming_language)";
-		Elements paragraphs = wf.readWikipedia(url);
-		index.indexPage(url, paragraphs);
-
-		url = "https://en.wikipedia.org/wiki/Programming_language";
-		paragraphs = wf.readWikipedia(url);
-		index.indexPage(url, paragraphs);
 	}
 }

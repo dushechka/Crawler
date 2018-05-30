@@ -12,7 +12,7 @@ import org.jsoup.select.Elements;
 import redis.clients.jedis.Jedis;
 
 
-public class WikiCrawler {
+public class HtmlCrawler {
 	// keeps track of where we started
 	@SuppressWarnings("unused")
 	private final String source;
@@ -21,10 +21,10 @@ public class WikiCrawler {
 	private JedisIndex index;
 
 	// queue of URLs to be indexed
-	private Queue<String> queue = new LinkedList<String>();
+	private Queue<String> queue = new LinkedList<>();
 
 	// fetcher used to get pages from Wikipedia
-	final static HtmlFetcher wf = new HtmlFetcher();
+	private final static HtmlFetcher hf = new HtmlFetcher();
 
 	/**
 	 * Constructor.
@@ -32,7 +32,7 @@ public class WikiCrawler {
 	 * @param source
 	 * @param index
 	 */
-	public WikiCrawler(String source, JedisIndex index) {
+	public HtmlCrawler(String source, JedisIndex index) {
 		this.source = source;
 		this.index = index;
 		queue.offer(source);
@@ -68,9 +68,9 @@ public class WikiCrawler {
 		
 		Elements paragraphs;
 		if (testing) {
-			paragraphs = wf.fetchPageParagraphs(url);
+			paragraphs = hf.fetchPageParagraphs(url);
 		} else {
-			paragraphs = wf.fetchPageParagraphs(url);
+			paragraphs = hf.fetchPageParagraphs(url);
 		}
 		index.indexPage(url, paragraphs);
 		queueInternalLinks(paragraphs);		
@@ -82,8 +82,7 @@ public class WikiCrawler {
 	 * 
 	 * @param paragraphs
 	 */
-	// NOTE: absence of access level modifier means package-level
-	void queueInternalLinks(Elements paragraphs) {
+	private void queueInternalLinks(Elements paragraphs) {
 		for (Element paragraph: paragraphs) {
 			queueInternalLinks(paragraph);
 		}
@@ -104,29 +103,6 @@ public class WikiCrawler {
 				//System.out.println(absURL);
 				queue.offer(absURL);
 			}
-		}
-	}
-	
-	public static void main(String[] args) throws IOException {
-		// make a WikiCrawler
-		Jedis jedis = JedisMaker.make();
-		JedisIndex index = new JedisIndex(jedis);
-		String source = "https://en.wikipedia.org/wiki/Java_(programming_language)";
-		WikiCrawler wc = new WikiCrawler(source, index);
-		
-		// for testing purposes, load up the queue
-		Elements paragraphs = wf.fetchPageParagraphs(source);
-		wc.queueInternalLinks(paragraphs);
-
-		// loop until we index a new page
-		String res;
-		do {
-			res = wc.crawl(false);
-		} while (res == null);
-		
-		Map<String, Integer> map = index.getCounts("the");
-		for (Entry<String, Integer> entry: map.entrySet()) {
-			System.out.println(entry);
 		}
 	}
 }

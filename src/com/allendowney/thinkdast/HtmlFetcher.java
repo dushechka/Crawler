@@ -1,9 +1,6 @@
 package com.allendowney.thinkdast;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -12,7 +9,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 
-public class WikiFetcher {
+public class HtmlFetcher {
+	private static final String MW_CONTENT_TEXT = "mw-content-text";
+	public static final String PARAGRAPH = "p";
 	private long lastRequestTime = -1;
 	private long minInterval = 1000;
 
@@ -23,7 +22,7 @@ public class WikiFetcher {
 	 * @return
 	 * @throws IOException
 	 */
-	public Elements fetchWikipedia(String url) throws IOException {
+	public Elements fetchPageParagraphs(String url) throws IOException {
 		sleepIfNeeded();
 
 		// download and parse the document
@@ -31,35 +30,9 @@ public class WikiFetcher {
 		Document doc = conn.get();
 
 		// select the content text and pull out the paragraphs.
-		Element content = doc.getElementById("mw-content-text");
-		
-		// TODO: avoid selecting paragraphs from sidebars and boxouts
-		Elements paras = content.select("p");
-		return paras;
-	}
+		Element content = doc.getElementById(MW_CONTENT_TEXT);
 
-	/**
-	 * Reads the contents of a Wikipedia page from src/resources.
-	 *
-	 * @param url
-	 * @return
-	 * @throws IOException
-	 */
-	public Elements readWikipedia(String url) throws IOException {
-		URL realURL = new URL(url);
-
-		// assemble the file name
-		String slash = File.separator;
-		String filename = "resources" + slash + realURL.getHost() + realURL.getPath();
-
-		// read the file
-		InputStream stream = WikiFetcher.class.getClassLoader().getResourceAsStream(filename);
-		Document doc = Jsoup.parse(stream, "UTF-8", filename);
-
-		// parse the contents of the file
-		// TODO: factor out the following repeated code
-		Element content = doc.getElementById("mw-content-text");
-		Elements paras = content.select("p");
+		Elements paras = content.select(PARAGRAPH);
 		return paras;
 	}
 
@@ -72,27 +45,12 @@ public class WikiFetcher {
 			long nextRequestTime = lastRequestTime + minInterval;
 			if (currentTime < nextRequestTime) {
 				try {
-					//System.out.println("Sleeping until " + nextRequestTime);
 					Thread.sleep(nextRequestTime - currentTime);
 				} catch (InterruptedException e) {
-					System.err.println("Warning: sleep interrupted in fetchWikipedia.");
+					System.err.println("Warning: sleep interrupted in fetchPageParagraphs.");
 				}
 			}
 		}
 		lastRequestTime = System.currentTimeMillis();
-	}
-
-	/**
-	 * @param args
-	 * @throws IOException
-	 */
-	public static void main(String[] args) throws IOException {
-		WikiFetcher wf = new WikiFetcher();
-		String url = "https://en.wikipedia.org/wiki/Java_(programming_language)";
-		Elements paragraphs = wf.readWikipedia(url);
-
-		for (Element paragraph: paragraphs) {
-			System.out.println(paragraph);
-		}
 	}
 }
