@@ -24,7 +24,7 @@ public class WikiCrawler {
 	private Queue<String> queue = new LinkedList<String>();
 
 	// fetcher used to get pages from Wikipedia
-	final static WikiFetcher wf = new WikiFetcher();
+	final static HtmlFetcher wf = new HtmlFetcher();
 
 	/**
 	 * Constructor.
@@ -68,9 +68,9 @@ public class WikiCrawler {
 		
 		Elements paragraphs;
 		if (testing) {
-			paragraphs = wf.readWikipedia(url);
+			paragraphs = wf.fetchPageParagraphs(url);
 		} else {
-			paragraphs = wf.fetchWikipedia(url);
+			paragraphs = wf.fetchPageParagraphs(url);
 		}
 		index.indexPage(url, paragraphs);
 		queueInternalLinks(paragraphs);		
@@ -115,7 +115,7 @@ public class WikiCrawler {
 		WikiCrawler wc = new WikiCrawler(source, index);
 		
 		// for testing purposes, load up the queue
-		Elements paragraphs = wf.fetchWikipedia(source);
+		Elements paragraphs = wf.fetchPageParagraphs(source);
 		wc.queueInternalLinks(paragraphs);
 
 		// loop until we index a new page
