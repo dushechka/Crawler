@@ -32,8 +32,7 @@ public class HtmlFetcher {
 		// select the content text and pull out the paragraphs.
 		Element content = doc.getElementById(MW_CONTENT_TEXT);
 
-		Elements paras = content.select(PARAGRAPH);
-		return paras;
+		return content.select(PARAGRAPH);
 	}
 
 	/**

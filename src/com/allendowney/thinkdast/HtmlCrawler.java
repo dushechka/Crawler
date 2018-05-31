@@ -13,6 +13,8 @@ import redis.clients.jedis.Jedis;
 
 
 public class HtmlCrawler {
+	public static final String HREF_CSS_QUERY = "a[href]";
+	public static final String HREF_ATTR_KEY = "href";
 	// keeps track of where we started
 	@SuppressWarnings("unused")
 	private final String source;
@@ -61,17 +63,11 @@ public class HtmlCrawler {
 		String url = queue.poll();
 		System.out.println("Crawling " + url);
 
-		if (testing==false && index.isIndexed(url)) {
-			System.out.println("Already indexed.");
+		if (index.isIndexed(url)) {
 			return null;
 		}
 		
-		Elements paragraphs;
-		if (testing) {
-			paragraphs = hf.fetchPageParagraphs(url);
-		} else {
-			paragraphs = hf.fetchPageParagraphs(url);
-		}
+		Elements paragraphs = hf.fetchPageParagraphs(url);
 		index.indexPage(url, paragraphs);
 		queueInternalLinks(paragraphs);		
 		return url;
@@ -94,13 +90,12 @@ public class HtmlCrawler {
 	 * @param paragraph
 	 */
 	private void queueInternalLinks(Element paragraph) {
-		Elements elts = paragraph.select("a[href]");
+		Elements elts = paragraph.select(HREF_CSS_QUERY);
 		for (Element elt: elts) {
-			String relURL = elt.attr("href");
+			String relURL = elt.attr(HREF_ATTR_KEY);
 			
 			if (relURL.startsWith("/wiki/")) {
 				String absURL = "https://en.wikipedia.org" + relURL;
-				//System.out.println(absURL);
 				queue.offer(absURL);
 			}
 		}
