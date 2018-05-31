@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.allendowney.thinkdast.interfaces.TermContainer;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
@@ -15,16 +16,18 @@ import org.jsoup.select.Elements;
  * @author downey
  *
  */
-public class TermCounter {
+public class TermCounter implements TermContainer {
 
 	private Map<String, Integer> map;
 	private String label;
 
-	public TermCounter(String label) {
+	public TermCounter(String label, Elements paragraphs) {
 		this.label = label;
 		this.map = new HashMap<>();
+		processElements(paragraphs);
 	}
 
+	@Override
 	public String getLabel() {
 		return label;
 	}
@@ -34,6 +37,7 @@ public class TermCounter {
 	 *
 	 * @return
 	 */
+	@Override
 	public int size() {
 		int total = 0;
 		for (Integer value: map.values()) {
@@ -47,7 +51,7 @@ public class TermCounter {
 	 *
 	 * @param paragraphs
 	 */
-	public void processElements(Elements paragraphs) {
+	private void processElements(Elements paragraphs) {
 		for (Node node: paragraphs) {
 			processTree(node);
 		}
@@ -58,7 +62,7 @@ public class TermCounter {
 	 *
 	 * @param root
 	 */
-	public void processTree(Node root) {
+	private void processTree(Node root) {
 		// NOTE: we could use select to find the TextNodes, but since
 		// we already have a tree iterator, let's use it.
 		for (Node node: new HtmlNodeIterable(root)) {
@@ -73,7 +77,7 @@ public class TermCounter {
 	 *
 	 * @param text  The text to process.
 	 */
-	public void processText(String text) {
+	private void processText(String text) {
 		// replace punctuation with spaces, convert to lower case, and split on whitespace
 		String[] array = text.replaceAll("\\pP", " ").
 				              toLowerCase().
@@ -90,6 +94,7 @@ public class TermCounter {
 	 *
 	 * @param term
 	 */
+	@Override
 	public void incrementTermCount(String term) {
 		put(term, get(term) + 1);
 	}
@@ -100,6 +105,7 @@ public class TermCounter {
 	 * @param term
 	 * @param count
 	 */
+	@Override
 	public void put(String term, int count) {
 		map.put(term, count);
 	}
@@ -110,6 +116,7 @@ public class TermCounter {
 	 * @param term
 	 * @return
 	 */
+	@Override
 	public Integer get(String term) {
 		Integer count = map.get(term);
 		return count == null ? 0 : count;
@@ -120,18 +127,8 @@ public class TermCounter {
 	 *
 	 * @return
 	 */
+	@Override
 	public Set<String> keySet() {
 		return map.keySet();
-	}
-
-	/**
-	 * Print the terms and their counts in arbitrary order.
-	 */
-	public void printCounts() {
-		for (String key: keySet()) {
-			Integer count = get(key);
-			System.out.println(key + ", " + count);
-		}
-		System.out.println("Total of all counts = " + size());
 	}
 }

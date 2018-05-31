@@ -1,14 +1,13 @@
 package com.allendowney.thinkdast;
 
-import java.io.IOException;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import com.allendowney.thinkdast.interfaces.TermContainer;
 import org.jsoup.select.Elements;
 
 import redis.clients.jedis.Jedis;
@@ -67,7 +66,7 @@ public class JedisIndex {
 	 * @param term
 	 * @param tc
 	 */
-	public void add(String term, TermCounter tc) {
+	public void add(String term, TermContainer tc) {
 		jedis.sadd(urlSetKey(term), tc.getLabel());
 	}
 
@@ -152,11 +151,10 @@ public class JedisIndex {
 		System.out.println("Indexing " + url);
 
 		// make a TermCounter and count the terms in the paragraphs
-		TermCounter tc = new TermCounter(url);
-		tc.processElements(paragraphs);
+		TermCounter tc = new TermCounter(url, paragraphs);
 
 		// push the contents of the TermCounter to Redis
-		pushTermCounterToRedis(tc);
+		pushTermContainerToRedis(tc);
 	}
 
 	/**
@@ -165,7 +163,7 @@ public class JedisIndex {
 	 * @param tc
 	 * @return List of return values from Redis.
 	 */
-	public List<Object> pushTermCounterToRedis(TermCounter tc) {
+	public List<Object> pushTermContainerToRedis(TermContainer tc) {
 		Transaction t = jedis.multi();
 
 		String url = tc.getLabel();
