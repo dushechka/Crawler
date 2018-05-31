@@ -1,3 +1,5 @@
+package dbs.redis;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
@@ -105,7 +107,7 @@ public class JedisIndex implements Index {
 	 * @param term
 	 * @return Map from URL to count.
 	 */
-	public Map<String, Integer> getCountsFaster(String term) {
+	private Map<String, Integer> getCountsFaster(String term) {
 		// convert the set of strings to a list so we get the
 		// same traversal order every time
 		List<String> urls = new ArrayList<>();
@@ -145,7 +147,7 @@ public class JedisIndex implements Index {
 	}
 
 	/**
-	 * Adds vocabulary from page to the index.
+	 * Adds vocabulary of page to the index.
 	 *
 	 * @param tc
 	 * @return List of return values from Redis.
