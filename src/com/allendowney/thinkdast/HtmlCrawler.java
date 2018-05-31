@@ -2,14 +2,11 @@ package com.allendowney.thinkdast;
 
 import java.io.IOException;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
 
+import com.allendowney.thinkdast.interfaces.Index;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
-import redis.clients.jedis.Jedis;
 
 
 public class HtmlCrawler {
@@ -20,7 +17,7 @@ public class HtmlCrawler {
 	private final String source;
 
 	// the index where the results go
-	private JedisIndex index;
+	private Index index;
 
 	// queue of URLs to be indexed
 	private Queue<String> queue = new LinkedList<>();
@@ -34,7 +31,7 @@ public class HtmlCrawler {
 	 * @param source
 	 * @param index
 	 */
-	public HtmlCrawler(String source, JedisIndex index) {
+	public HtmlCrawler(String source, Index index) {
 		this.source = source;
 		this.index = index;
 		queue.offer(source);
@@ -68,7 +65,8 @@ public class HtmlCrawler {
 		}
 		
 		Elements paragraphs = hf.fetchPageParagraphs(url);
-		index.indexPage(url, paragraphs);
+		TermCounter tc = new TermCounter(url, paragraphs);
+		index.putTerms(tc);
 		queueInternalLinks(paragraphs);		
 		return url;
 	}

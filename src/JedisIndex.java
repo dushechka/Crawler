@@ -1,5 +1,3 @@
-package com.allendowney.thinkdast;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
@@ -7,8 +5,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import com.allendowney.thinkdast.interfaces.Index;
 import com.allendowney.thinkdast.interfaces.TermContainer;
-import org.jsoup.select.Elements;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;
@@ -17,7 +15,7 @@ import redis.clients.jedis.Transaction;
  * Represents a Redis-backed web search index.
  *
  */
-public class JedisIndex {
+public class JedisIndex implements Index {
 
 	public static final String COLON = ":";
 	private Jedis jedis;
@@ -55,6 +53,7 @@ public class JedisIndex {
 	 * @param url
 	 * @return
 	 */
+	@Override
 	public boolean isIndexed(String url) {
 		String redisKey = termCounterKey(url);
 		return jedis.exists(redisKey);
@@ -64,10 +63,11 @@ public class JedisIndex {
 	 * Adds a URL to the set associated with `term`.
 	 *
 	 * @param term
-	 * @param tc
+	 * @param url
 	 */
-	public void add(String term, TermContainer tc) {
-		jedis.sadd(urlSetKey(term), tc.getLabel());
+	@Override
+	public void add(String term, String url) {
+		jedis.sadd(urlSetKey(term), url);
 	}
 
 	/**
@@ -76,6 +76,7 @@ public class JedisIndex {
 	 * @param term
 	 * @return Set of URLs.
 	 */
+	@Override
 	public Set<String> getURLs(String term) {
 		Set<String> set = jedis.smembers(urlSetKey(term));
 		return set;
@@ -87,6 +88,7 @@ public class JedisIndex {
 	 * @param term
 	 * @return Map from URL to count.
 	 */
+	@Override
 	public Map<String, Integer> getCounts(String term) {
 		Map<String, Integer> map = new HashMap<>();
 		Set<String> urls = getURLs(term);
@@ -135,6 +137,7 @@ public class JedisIndex {
 	 * @param term
 	 * @return
 	 */
+	@Override
 	public Integer getCount(String url, String term) {
 		String redisKey = termCounterKey(url);
 		String count = jedis.hget(redisKey, term);
@@ -142,28 +145,13 @@ public class JedisIndex {
 	}
 
 	/**
-	 * Add a page to the index.
-	 *
-	 * @param url         URL of the page.
-	 * @param paragraphs  Collection of elements that should be indexed.
-	 */
-	public void indexPage(String url, Elements paragraphs) {
-		System.out.println("Indexing " + url);
-
-		// make a TermCounter and count the terms in the paragraphs
-		TermCounter tc = new TermCounter(url, paragraphs);
-
-		// push the contents of the TermCounter to Redis
-		pushTermContainerToRedis(tc);
-	}
-
-	/**
-	 * Pushes the contents of the TermCounter to Redis.
+	 * Adds vocabulary from page to the index.
 	 *
 	 * @param tc
 	 * @return List of return values from Redis.
 	 */
-	public List<Object> pushTermContainerToRedis(TermContainer tc) {
+	@Override
+	public List<Object> putTerms(TermContainer tc) {
 		Transaction t = jedis.multi();
 
 		String url = tc.getLabel();
@@ -209,6 +197,7 @@ public class JedisIndex {
 	 *
 	 * @return
 	 */
+	@Override
 	public Set<String> termSet() {
 		Set<String> keys = urlSetKeys();
 		Set<String> terms = new HashSet<>();
