@@ -45,13 +45,13 @@ public class HtmlCrawler implements Crawler {
 	}
 
 	/**
-	 * Gets site's pages by given URL.
-	 * @param url
+	 * Gets site's pages by given sitemap URL.
+	 * @param sitemapUrl Sitemap URL.
 	 * @return All site's pages.
 	 * @return
 	 */
 	@Override
-	public Set<String> getSitePages(String url) {
+	public Set<String> getSitePages(String sitemapUrl) {
 		return null;
 	}
 

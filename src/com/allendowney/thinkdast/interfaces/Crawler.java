@@ -12,12 +12,12 @@ public interface Crawler {
     int queueSize();
 
     /**
-     * Gets site's pages by given URL.
-     * @param url
+     * Gets site's pages by given sitemap URL.
+     * @param sitemapUrl Sitemap URL.
      * @return All site's pages.
      * @return
      */
-    Set<String> getSitePages(String url);
+    Set<String> getSitePages(String sitemapUrl);
 
     /**
      * Crawls all of the site's links and indexes them.
