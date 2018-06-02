@@ -65,16 +65,16 @@ public class RatesDatabase {
     }
 
     public boolean insertRowInPages(String url, int siteId,
-                                    @Nullable Date lastScanDate) throws SQLException {
+                                    @Nullable Timestamp lastScanDate) throws SQLException {
         try {
             // checking, if url is malformed
             System.out.println("Creating URL from: " + url);
             URL pageUrl = new URL(url);
             PreparedStatement stmt = conn.prepareStatement(
-                                        "INSERT INTO pages (URL, siteID) VALUES (?, ?)" );
+                                        "INSERT INTO pages (URL, siteID, lastScanDate) VALUES (?, ?, ?)" );
             stmt.setString(1, url);
             stmt.setInt(2, siteId);
-//            stmt.setString(3, "2018-06-02 03:35:29");
+            stmt.setTimestamp(3, lastScanDate);
             stmt.execute();
             stmt.close();
             return true;
