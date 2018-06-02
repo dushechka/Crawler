@@ -15,7 +15,10 @@ public class WebCrawler {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
             Set<Integer> sites = ratesDb.getSitesWithSinglePages();
             for (Integer siteId : sites) {
-                System.out.println(ratesDb.getSiteAddress(siteId));
+                if (siteId != null) {
+                    System.out.println(ratesDb.getSiteAddress(siteId));
+                    ratesDb.insertRowInPages(ratesDb.getSiteAddress(siteId), siteId, new Date(0));
+                }
             }
         } catch (SQLException exc) {
             exc.printStackTrace();

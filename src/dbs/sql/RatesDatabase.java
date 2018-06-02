@@ -1,5 +1,7 @@
 package dbs.sql;
 
+import com.sun.istack.internal.Nullable;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.*;
@@ -44,7 +46,7 @@ public class RatesDatabase {
         return sites;
     }
 
-    public String getSiteAddress(int siteId) throws SQLException {
+    public @Nullable String getSiteAddress(int siteId) throws SQLException {
         String result = null;
         PreparedStatement stmt = conn.prepareStatement(
                                     "SELECT URL FROM pages WHERE siteId = ?;");
@@ -60,5 +62,24 @@ public class RatesDatabase {
         }
         stmt.close();
         return result;
+    }
+
+    public boolean insertRowInPages(String url, int siteId,
+                                    @Nullable Date lastScanDate) throws SQLException {
+        try {
+            // checking, if url is malformed
+            URL pageUrl = new URL(url);
+            PreparedStatement stmt = conn.prepareStatement(
+                                        "INSERT INTO pages (URL, siteID, lastScanDate) VALUES (?, ?, ?);" );
+            stmt.setString(1, url);
+            stmt.setInt(2, siteId);
+            stmt.setDate(3, lastScanDate);
+            stmt.executeQuery();
+            stmt.close();
+            return true;
+        } catch (MalformedURLException exc) {
+            exc.printStackTrace();
+        }
+        return false;
     }
 }
