@@ -1,3 +1,6 @@
+import dbs.DBFactory;
+import dbs.sql.RatesDatabase;
+
 import java.sql.*;
 
 public class WebCrawler {
@@ -7,26 +10,12 @@ public class WebCrawler {
     private static final String PASSWORD = "123";
 
     public static void main(String[] args) throws Exception {
-        Connection conn = null;
         try {
-            conn = DriverManager.getConnection(DB_ADRESS, USER_NAME, PASSWORD);
-            if (conn == null) {
-                System.out.println("No database connection!");
-                System.exit(0);
-            }
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM pages WHERE siteID=1");
-            while (rs.next()) {
-                System.out.println(rs.getRow() + ". " + rs.getString("URL")
-                        + "\t" + rs.getString("foundDateTime"));
-            }
-            stmt.close();
+            RatesDatabase ratesDb = DBFactory.getRatesDb();
+            System.out.println(ratesDb.getSitesWithSinglePages());
+            System.out.println(ratesDb.getSitesWithMultiplePages());
         } catch (SQLException exc) {
             exc.printStackTrace();
-        } finally {
-            if (conn != null) {
-                conn.close();
-            }
         }
     }
 }
