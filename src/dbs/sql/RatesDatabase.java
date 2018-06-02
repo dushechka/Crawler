@@ -1,13 +1,13 @@
 package dbs.sql;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.*;
 import java.util.HashSet;
 import java.util.Set;
 
 public class RatesDatabase {
+    public static final String PROTOCOL_DELIMITER = "://";
     private final Connection conn;
 
     public RatesDatabase(Connection conn) {
@@ -42,5 +42,23 @@ public class RatesDatabase {
         }
         rs.close();
         return sites;
+    }
+
+    public String getSiteAddress(int siteId) throws SQLException {
+        String result = null;
+        PreparedStatement stmt = conn.prepareStatement(
+                                    "SELECT URL FROM pages WHERE siteId = ?;");
+        stmt.setInt(1, siteId);
+        ResultSet rs = stmt.executeQuery();
+        try {
+            if (rs.next()) {
+                URL url = new URL(rs.getString("URL"));
+                result = url.getProtocol() + PROTOCOL_DELIMITER + url.getHost();
+            }
+        } catch (MalformedURLException exc) {
+            exc.printStackTrace();
+        }
+        stmt.close();
+        return result;
     }
 }
