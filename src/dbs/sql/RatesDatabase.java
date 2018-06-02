@@ -19,7 +19,7 @@ public class RatesDatabase {
     private ResultSet getPageCounts() throws SQLException {
         Statement stmt = conn.createStatement();
         return stmt.executeQuery(
-                "SELECT siteID, COUNT(*) FROM pages GROUP BY siteID;");
+                "SELECT siteID, COUNT(*) FROM pages GROUP BY siteID");
     }
 
     public Set<Integer> getSitesWithSinglePages() throws SQLException {
@@ -49,7 +49,7 @@ public class RatesDatabase {
     public @Nullable String getSiteAddress(int siteId) throws SQLException {
         String result = null;
         PreparedStatement stmt = conn.prepareStatement(
-                                    "SELECT URL FROM pages WHERE siteId = ?;");
+                                    "SELECT URL FROM pages WHERE siteId = ?");
         stmt.setInt(1, siteId);
         ResultSet rs = stmt.executeQuery();
         try {
@@ -58,7 +58,7 @@ public class RatesDatabase {
                 result = url.getProtocol() + PROTOCOL_DELIMITER + url.getHost();
             }
         } catch (MalformedURLException exc) {
-            exc.printStackTrace();
+            System.out.println("Malformed URL. SiteID = " + siteId);
         }
         stmt.close();
         return result;
@@ -68,13 +68,14 @@ public class RatesDatabase {
                                     @Nullable Date lastScanDate) throws SQLException {
         try {
             // checking, if url is malformed
+            System.out.println("Creating URL from: " + url);
             URL pageUrl = new URL(url);
             PreparedStatement stmt = conn.prepareStatement(
-                                        "INSERT INTO pages (URL, siteID, lastScanDate) VALUES (?, ?, ?);" );
+                                        "INSERT INTO pages (URL, siteID) VALUES (?, ?)" );
             stmt.setString(1, url);
             stmt.setInt(2, siteId);
-            stmt.setDate(3, lastScanDate);
-            stmt.executeQuery();
+//            stmt.setString(3, "2018-06-02 03:35:29");
+            stmt.execute();
             stmt.close();
             return true;
         } catch (MalformedURLException exc) {
