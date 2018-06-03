@@ -7,6 +7,7 @@ import java.sql.*;
 import java.util.Set;
 
 public class WebCrawler {
+    private static final String PROTOCOL_DELIMITER = "://";
     private static final String ROBOTS_TXT_APPENDIX = "/robots.txt";
 
     /**
@@ -20,7 +21,7 @@ public class WebCrawler {
     private static void insertLinksToRobotsPages(RatesDatabase ratesDb) throws SQLException {
         Set<Integer> sites = ratesDb.getSitesWithSinglePages();
         for (Integer siteId : sites) {
-            String address = ratesDb.getSiteAddress(siteId);
+            String address = getSiteAddress(ratesDb.getArbitrarySiteLink(siteId));
             if (address != null) {
                 System.out.println(address);
                 String robotsAddress = address + ROBOTS_TXT_APPENDIX;
@@ -33,6 +34,19 @@ public class WebCrawler {
                 }
             }
         }
+    }
+
+    /**
+     * Takes arbitrary link to the site and returns it's address
+     * if form, like http://example.com, with given links protocol.
+     *
+     * @param link  Arbitrary link to the site
+     * @return      Site's common address
+     * @throws MalformedURLException if site link is malformed.
+     */
+    private static String getSiteAddress(String link) throws MalformedURLException {
+        URL url = new URL(link);
+        return url.getProtocol() + PROTOCOL_DELIMITER + url.getHost();
     }
 
     public static void main(String[] args) {
