@@ -2,8 +2,11 @@ import dbs.DBFactory;
 import dbs.sql.RatesDatabase;
 import dbs.sql.orm.Page;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.sql.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,11 +33,16 @@ public class WebCrawler {
         for (Page page : pages) {
             try {
                 String address = getSiteAddress(page.getUrl());
-                System.out.println(address);
-                String robotsAddress = address + ROBOTS_TXT_APPENDIX;
-                ratesDb.insertRowInPagesTable(new URL(robotsAddress), page.getSiteId(), null);
-            } catch (Exception exc) {
+                if (isSiteAvailable(address)) {
+                    System.out.println("Adding robots.txt link for " + address);
+                    String robotsAddress = address + ROBOTS_TXT_APPENDIX;
+                    ratesDb.insertRowInPagesTable(new URL(robotsAddress), page.getSiteId(), null);
+                }
+            } catch (MalformedURLException | UnknownHostException e) {
+                e.printStackTrace();
+            } catch (SQLException | IOException exc) {
                 exc.printStackTrace();
+                ratesDb.updateLastScanDate(page.getiD(), null);
             }
         }
     }
@@ -60,6 +68,17 @@ public class WebCrawler {
     private static String getSiteAddress(String link) throws MalformedURLException {
         URL url = new URL(link);
         return url.getProtocol() + PROTOCOL_DELIMITER + url.getHost();
+    }
+
+    private static boolean isSiteAvailable(String address) throws IOException{
+        boolean result = false;
+        URL url = new URL(address);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.connect();
+        result = (connection.getResponseCode() == 200);
+        connection.disconnect();
+        return result;
     }
 
     public static void main(String[] args) {

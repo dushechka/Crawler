@@ -123,7 +123,6 @@ public class RatesDatabase {
             stmt.close();
     }
 
-
     public void updateLastScanDate(Integer pageId,
                                     @Nullable Timestamp lastScanDate) throws SQLException{
         PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE siteId = ?");
@@ -135,7 +134,7 @@ public class RatesDatabase {
 
     public void updateLastScanDates(Set<Integer> pageIds,
                                        @Nullable Timestamp lastScanDate) throws SQLException{
-        PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE siteId = ?");
+        PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE ID = ?");
         stmt.setTimestamp(1, lastScanDate);
         for (Integer id : pageIds) {
             stmt.setInt(2, id);
