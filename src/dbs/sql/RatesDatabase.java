@@ -1,6 +1,7 @@
 package dbs.sql;
 
 import com.sun.istack.internal.Nullable;
+import dbs.sql.orm.ModifiablePage;
 import dbs.sql.orm.Page;
 
 import java.net.MalformedURLException;
@@ -10,13 +11,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class RatesDatabase {
-    public static final String PROTOCOL_DELIMITER = "://";
-    public static final String PAGES_ID_COLUMN = "ID";
-    public static final String PAGES_URL_COLUMN = "URL";
-    public static final String PAGES_SITE_ID_COLUMN = "siteID";
-    public static final String PAGES_FOUND_DATE_TIME_COLUMN = "foundDateTime";
-    public static final String PAGES_LAST_SCAN_DATE_COLUMNT = "lastScanDate";
-    public static final String COUNT_COLUMN = "COUNT(*)";
+    private static final String PROTOCOL_DELIMITER = "://";
+    private static final String PAGES_ID_COLUMN = "ID";
+    private static final String PAGES_URL_COLUMN = "URL";
+    private static final String PAGES_SITE_ID_COLUMN = "siteID";
+    private static final String PAGES_FOUND_DATE_TIME_COLUMN = "foundDateTime";
+    private static final String PAGES_LAST_SCAN_DATE_COLUMNT = "lastScanDate";
+    private static final String COUNT_COLUMN = "COUNT(*)";
     private final Connection conn;
 
     public RatesDatabase(Connection conn) {
@@ -40,16 +41,11 @@ public class RatesDatabase {
         while (rs.next()) {
             if (rs.getInt(COUNT_COLUMN) == 1
                         && rs.getTimestamp(PAGES_LAST_SCAN_DATE_COLUMNT) == null) {
-                try {
-                    pages.add(new Page(rs.getInt(PAGES_ID_COLUMN),
-                            new URL(rs.getString(PAGES_URL_COLUMN)),
+                    pages.add(new ModifiablePage(rs.getInt(PAGES_ID_COLUMN),
+                            rs.getString(PAGES_URL_COLUMN),
                             rs.getInt(PAGES_SITE_ID_COLUMN),
                             rs.getTimestamp(PAGES_FOUND_DATE_TIME_COLUMN),
                             rs.getTimestamp(PAGES_LAST_SCAN_DATE_COLUMNT)));
-                } catch (MalformedURLException exc) {
-                    System.out.println("Malformed link found: " + rs.getString(PAGES_URL_COLUMN));
-                    malformedUrls.add(rs.getInt(PAGES_ID_COLUMN));
-                }
             }
         }
         rs.close();
