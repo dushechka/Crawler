@@ -1,6 +1,7 @@
 package dbs.sql;
 
 import com.sun.istack.internal.Nullable;
+import dbs.sql.orm.Page;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -10,6 +11,12 @@ import java.util.Set;
 
 public class RatesDatabase {
     public static final String PROTOCOL_DELIMITER = "://";
+    public static final String PAGES_ID_COLUMN = "ID";
+    public static final String PAGES_URL_COLUMN = "URL";
+    public static final String PAGES_SITE_ID_COLUMN = "siteID";
+    public static final String PAGES_FOUND_DATE_TIME_COLUMN = "foundDateTime";
+    public static final String PAGES_LAST_SCAN_DATE_COLUMNT = "lastScanDate";
+    public static final String COUNT_COLUMN = "COUNT(*)";
     private final Connection conn;
 
     public RatesDatabase(Connection conn) {
@@ -17,12 +24,36 @@ public class RatesDatabase {
     }
 
     /**
-     * Get rows from "Pages" table with counts of pages per site.
+     * Get rows from "Pages" table grouped by siteID,
+     * containing <code>COUNT(*)</code> field.
      */
-    private ResultSet getPageCounts() throws SQLException {
+    private ResultSet getPagesWithCounts() throws SQLException {
         Statement stmt = conn.createStatement();
         return stmt.executeQuery(
-                "SELECT siteID, COUNT(*) FROM pages GROUP BY siteID");
+                "SELECT *, COUNT(*) FROM pages GROUP BY siteID");
+    }
+
+    public Set<Page> getSinglePages() throws SQLException {
+        Set<Page> pages = new HashSet<>();
+        Set<Integer> malformedUrls = new HashSet<>();
+        ResultSet rs = getPagesWithCounts();
+        while (rs.next()) {
+            if (rs.getInt(COUNT_COLUMN) == 1
+                        && rs.getTimestamp(PAGES_LAST_SCAN_DATE_COLUMNT) == null) {
+                try {
+                    pages.add(new Page(rs.getInt(PAGES_ID_COLUMN),
+                            new URL(rs.getString(PAGES_URL_COLUMN)),
+                            rs.getInt(PAGES_SITE_ID_COLUMN),
+                            rs.getTimestamp(PAGES_FOUND_DATE_TIME_COLUMN),
+                            rs.getTimestamp(PAGES_LAST_SCAN_DATE_COLUMNT)));
+                } catch (MalformedURLException exc) {
+                    System.out.println("Malformed link found: " + rs.getString(PAGES_URL_COLUMN));
+                    malformedUrls.add(rs.getInt(PAGES_ID_COLUMN));
+                }
+            }
+        }
+        rs.close();
+        return pages;
     }
 
     /**
@@ -32,7 +63,7 @@ public class RatesDatabase {
      */
     public Set<Integer> getSitesWithSinglePages() throws SQLException {
         Set<Integer> sites = new HashSet<>();
-        ResultSet rs = getPageCounts();
+        ResultSet rs = getPagesWithCounts();
         while (rs.next()) {
             if (rs.getInt("COUNT(*)") == 1) {
                 sites.add(rs.getInt("siteID"));
@@ -49,7 +80,7 @@ public class RatesDatabase {
      */
     public Set<Integer> getSitesWithMultiplePages() throws SQLException {
         Set<Integer> sites = new HashSet<>();
-        ResultSet rs = getPageCounts();
+        ResultSet rs = getPagesWithCounts();
         while (rs.next()) {
             if (rs.getInt("COUNT(*)") > 1) {
                 sites.add(rs.getInt("siteID"));
