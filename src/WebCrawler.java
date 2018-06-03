@@ -1,9 +1,11 @@
 import dbs.DBFactory;
 import dbs.sql.RatesDatabase;
+import dbs.sql.orm.Page;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.*;
+import java.util.HashSet;
 import java.util.Set;
 
 public class WebCrawler {
@@ -19,21 +21,32 @@ public class WebCrawler {
      *                      execute some of the queries.
      */
     private static void insertLinksToRobotsPages(RatesDatabase ratesDb) throws SQLException {
-        Set<Integer> sites = ratesDb.getSitesWithSinglePages();
-        for (Integer siteId : sites) {
-            String address = getSiteAddress(ratesDb.getArbitrarySiteLink(siteId));
-            if (address != null) {
+        Set<Page> pages = selectUnscannedPages(ratesDb.getSinglePages());
+        Set<Integer> pageIds = new HashSet<>();
+        for (Page page : pages) {
+            pageIds.add(page.getiD());
+        }
+        ratesDb.updateLastScanDates(pageIds, new Timestamp(System.currentTimeMillis()));
+        for (Page page : pages) {
+            try {
+                String address = getSiteAddress(page.getUrl());
                 System.out.println(address);
                 String robotsAddress = address + ROBOTS_TXT_APPENDIX;
-                try {
-                    ratesDb.insertRowInPages(new URL(robotsAddress), siteId,
-                            new Timestamp(System.currentTimeMillis()));
-                } catch (MalformedURLException exc) {
-                    System.out.println("Found malformed URL for a site! SiteID =" + siteId);
-                    System.out.println("Can't insert robots.txt link.");
-                }
+                ratesDb.insertRowInPagesTable(new URL(robotsAddress), page.getSiteId(), null);
+            } catch (Exception exc) {
+                exc.printStackTrace();
             }
         }
+    }
+
+    private static Set<Page> selectUnscannedPages(Set<Page> pages) {
+        Set<Page> unscanned = new HashSet<>();
+        for (Page page : pages) {
+            if (page.getLastScanDate() == null) {
+                unscanned.add(page);
+            }
+        }
+        return unscanned;
     }
 
     /**

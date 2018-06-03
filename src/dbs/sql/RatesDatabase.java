@@ -37,8 +37,7 @@ public class RatesDatabase {
         Set<Page> pages = new HashSet<>();
         ResultSet rs = getPagesWithCounts();
         while (rs.next()) {
-            if (rs.getInt(COUNT_COLUMN) == 1
-                        && rs.getTimestamp(PAGES_LAST_SCAN_DATE_COLUMN) == null) {
+            if (rs.getInt(COUNT_COLUMN) == 1) {
                     pages.add(new ModifiablePage(rs.getInt(PAGES_ID_COLUMN),
                             rs.getString(PAGES_URL_COLUMN),
                             rs.getInt(PAGES_SITE_ID_COLUMN),
@@ -111,8 +110,8 @@ public class RatesDatabase {
      *                      last time or null, if never was
      * @throws SQLException
      */
-    public void insertRowInPages(URL url, int siteId,
-                                    @Nullable Timestamp lastScanDate) throws SQLException {
+    public void insertRowInPagesTable(URL url, int siteId,
+                                      @Nullable Timestamp lastScanDate) throws SQLException {
             // checking, if url is malformed
             System.out.println("Creating URL from: " + url);
             PreparedStatement stmt = conn.prepareStatement(
@@ -122,5 +121,26 @@ public class RatesDatabase {
             stmt.setTimestamp(3, lastScanDate);
             stmt.execute();
             stmt.close();
+    }
+
+
+    public void updateLastScanDate(Integer pageId,
+                                    @Nullable Timestamp lastScanDate) throws SQLException{
+        PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE siteId = ?");
+        stmt.setTimestamp(1, lastScanDate);
+            stmt.setInt(2, pageId);
+            stmt.execute();
+            stmt.close();
+    }
+
+    public void updateLastScanDates(Set<Integer> pageIds,
+                                       @Nullable Timestamp lastScanDate) throws SQLException{
+        PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE siteId = ?");
+        stmt.setTimestamp(1, lastScanDate);
+        for (Integer id : pageIds) {
+            stmt.setInt(2, id);
+            stmt.execute();
+        }
+        stmt.close();
     }
 }
