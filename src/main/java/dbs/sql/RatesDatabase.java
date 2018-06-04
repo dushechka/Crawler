@@ -43,7 +43,7 @@ public class RatesDatabase {
         Set<String> links = new HashSet<>();
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(
-                "SELECT URL FROM pages WHERE URL LIKE '%robots.txt' AND lastScanDate IS NULL'");
+                "SELECT URL FROM pages WHERE URL LIKE '%robots.txt' AND lastScanDate IS NULL");
         while (rs.next()) {
             links.add(rs.getString("URL"));
         }

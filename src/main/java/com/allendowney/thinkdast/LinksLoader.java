@@ -1,8 +1,10 @@
 package com.allendowney.thinkdast;
 
 import com.allendowney.thinkdast.interfaces.SitemapLoader;
+import com.panforge.robotstxt.RobotsTxt;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -37,12 +39,12 @@ public class LinksLoader implements SitemapLoader {
     }
 
     @Override
-    public Set<String> getPagesFromRobotsTxt(String robotsTxtLink) {
-        PageFetcher pf = new PageFetcher();
-        try {
-            System.out.println(pf.getTxtFileContent(robotsTxtLink));
-        } catch (IOException exc) {
-            exc.printStackTrace();
+    public Set<String> getPagesFromRobotsTxt(String robotsTxtLink) throws IOException {
+        try (InputStream robotsTxtStream = new URL(robotsTxtLink).openStream()) {
+            RobotsTxt robotsTxt = RobotsTxt.read(robotsTxtStream);
+            for (String sitemap : robotsTxt.getSitemaps()) {
+                System.out.println("Sitemap: " + sitemap);
+            }
         }
         return null;
     }
