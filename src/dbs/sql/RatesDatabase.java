@@ -39,7 +39,7 @@ public class RatesDatabase {
      * @return Unscanned links to robots.txt files or null if none.
      * @throws SQLException
      */
-    public @Nullable Set<String> getUnscannedRobotsTxtPages() throws SQLException {
+    public @Nullable Set<String> getUnscannedRobotsTxtLinks() throws SQLException {
         Set<String> links = new HashSet<>();
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(
@@ -75,7 +75,7 @@ public class RatesDatabase {
      * @return  Site ID's
      * @throws SQLException
      */
-    public Set<Integer> getSitesWithSinglePages() throws SQLException {
+    public Set<Integer> getSitesWithSinglePagesIds() throws SQLException {
         Set<Integer> sites = new HashSet<>();
         ResultSet rs = getPagesWithCounts();
         while (rs.next()) {
@@ -92,7 +92,7 @@ public class RatesDatabase {
      * @return  Site ID's
      * @throws SQLException
      */
-    public Set<Integer> getSitesWithMultiplePages() throws SQLException {
+    public Set<Integer> getSitesWithMultiplePagesIds() throws SQLException {
         Set<Integer> sites = new HashSet<>();
         ResultSet rs = getPagesWithCounts();
         while (rs.next()) {
