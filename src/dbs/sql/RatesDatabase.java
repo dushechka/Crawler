@@ -39,15 +39,19 @@ public class RatesDatabase {
      * @return Unscanned links to robots.txt files or null if none.
      * @throws SQLException
      */
-    public Set<String> getUnscannedRobotsTxtLinks() throws SQLException {
+    public @Nullable Set<String> getUnscannedRobotsTxtLinks() throws SQLException {
         Set<String> links = new HashSet<>();
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(
-                "SELECT URL FROM pages WHERE URL LIKE '%robots.txt' AND lastScanDate IS NULL");
+                "SELECT URL FROM pages WHERE URL LIKE '%robots.txt' AND lastScanDate IS NULL'");
         while (rs.next()) {
             links.add(rs.getString("URL"));
         }
-        return links;
+        if (links.size() > 0) {
+            return links;
+        } else {
+            return null;
+        }
     }
 
     public Set<Page> getSinglePages() throws SQLException {

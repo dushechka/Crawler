@@ -39,7 +39,7 @@ public class PageFetcher {
 	public String getTxtFileContent(String url) throws IOException {
 		Connection conn = Jsoup.connect(url);
 		Document doc = conn.get();
-		Element content = doc.getElementById("pre");
+		Element content = doc.getElementById(BODY);
 		return content.text();
 	}
 

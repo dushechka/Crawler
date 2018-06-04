@@ -63,8 +63,7 @@ public class WebCrawler {
             Set<String> robotsTxtLinks = ratesDb.getUnscannedRobotsTxtLinks();
             LinksLoader ln = new LinksLoader();
             for (String url : robotsTxtLinks) {
-                System.out.println("Fetchin' sitemaps from: " + url);
-                ln.getPagesLinksFromRobotsTxt(url);
+                ln.getPagesFromRobotsTxt(url);
             }
         } catch (Exception exc) {
             exc.printStackTrace();
