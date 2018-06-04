@@ -1,11 +1,15 @@
 package com.allendowney.thinkdast;
 
 import com.allendowney.thinkdast.interfaces.SitemapLoader;
+import com.sun.istack.internal.Nullable;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Set;
 
 public class LinksLoader implements SitemapLoader {
@@ -37,27 +41,46 @@ public class LinksLoader implements SitemapLoader {
     }
 
     @Override
-    public Set<String> getPagesFromRobotsTxt(String robotsTxtLink) {
-        PageFetcher pf = new PageFetcher();
+    public @Nullable Set<String> getPagesLinksFromRobotsTxt(String robotsTxtLink) {
         try {
-            System.out.println(pf.getTxtFileContent(robotsTxtLink));
+            Set<String> rootSitemaps = getRootSiteMaps(robotsTxtLink);
+            System.out.println("Printin' fetched sitemaps:");
+            for (String link : rootSitemaps) {
+                System.out.println(link);
+            }
         } catch (IOException exc) {
             exc.printStackTrace();
         }
         return null;
     }
 
+    private Set<String> getRootSiteMaps(String link) throws IOException {
+        Set<String> sitemaps = new HashSet<>();
+        URL url = new URL(link);
+        BufferedReader br = new BufferedReader(
+                                    new InputStreamReader(url.openStream()));
+        String line;
+        while (br.ready()) {
+            line = br.readLine().toLowerCase().trim();
+            if (line.startsWith("sitemap")) {
+                sitemaps.add(line.substring(line.indexOf("http")));
+            }
+        }
+        br.close();
+        return sitemaps;
+    }
+
     @Override
-    public Set<String> getPagesFromSitemap(String sitemapLink) {
+    public Set<String> getPagesLinksFromSitemap(String sitemapLink) {
         return null;
     }
 
     @Override
-    public Set<String> getPagesFromSitemaps(Set<String> sitemapLinks) {
+    public Set<String> getPagesLinksFromSitemaps(Set<String> sitemapLinks) {
         return null;
     }
 
-    private Set<String> getPagesFromSitemapWithUrls(URL sitemap) {
+    private Set<String> getLinksFromSitemapWithUrls(URL sitemap) {
         return null;
     }
 }
