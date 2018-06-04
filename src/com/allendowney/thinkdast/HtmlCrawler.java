@@ -34,55 +34,25 @@ public class HtmlCrawler implements Crawler {
 		this.index = index;
 	}
 
-	/**
-	 * Returns the number of URLs in the queue.
-	 *
-	 * @return
-	 */
 	@Override
 	public int queueSize() {
 		return queue.size();
 	}
 
-	/**
-	 * Gets site's pages by given sitemap URL.
-	 * @param sitemapUrl Sitemap URL.
-	 * @return All site's pages.
-	 * @return
-	 */
 	@Override
-	public Set<String> getSitePages(String sitemapUrl) {
+	public String crawlPage(String url) throws IOException {
+		Elements paragraphs = hf.fetchPageParagraphs(url);
+		System.out.println("Crawling " + url);
+		TermContainer tc = new TermCounter(url, paragraphs);
+		index.putTerms(tc);
+		return url;
+	}
+
+	@Override
+	public Set<String> crawlPages(Set<String> links) {
 		return null;
 	}
 
-	/**
-	 * Crawls all of the site's links and indexes them.
-	 * @param url
-     * @return Crawled pages URLs.
-	 */
-	@Override
-	public Set<String> crawl(String url) {
-		queue.clear();
-		queue.offer(url);
-		return null;
-	}
-
-	/**
-	 * Crawl all of the given links and indexes them.
-	 * @param links
-	 * @return Crawled pages URLs.
-	 */
-	@Override
-	public Set<String> crawl(Set<String> links) {
-		return null;
-	}
-
-	/**
-	 * Gets a URL from the queue and indexes it.
-	 *
-	 * @return URL of page indexed.
-	 * @throws IOException
-	 */
 	private String crawlFromQueue() throws IOException {
 		if (queue.isEmpty()) {
 			return null;
@@ -97,21 +67,6 @@ public class HtmlCrawler implements Crawler {
 		TermContainer tc = new TermCounter(url, paragraphs);
 		index.putTerms(tc);
 		queueInternalLinks(paragraphs);
-		return url;
-	}
-
-	/**
-	 * Indexes given url.
-	 *
-	 * @return	URL of the page indexed.
-	 * @throws IOException
-	 */
-	@Override
-	public String crawlPage(String url) throws IOException {
-		Elements paragraphs = hf.fetchPageParagraphs(url);
-		System.out.println("Crawling " + url);
-		TermContainer tc = new TermCounter(url, paragraphs);
-		index.putTerms(tc);
 		return url;
 	}
 
