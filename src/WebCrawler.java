@@ -60,7 +60,7 @@ public class WebCrawler {
         try {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
 //            insertLinksToRobotsPages(ratesDb);
-            Set<String> robotsTxtLinks = ratesDb.getRobotsTxtPages();
+            Set<String> robotsTxtLinks = ratesDb.getUnscannedRobotsTxtPages();
             LinksLoader ln = new LinksLoader();
             for (String url : robotsTxtLinks) {
                 ln.getPagesFromRobotsTxt(url);
