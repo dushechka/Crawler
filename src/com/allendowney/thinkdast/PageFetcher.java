@@ -9,9 +9,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 
-public class HtmlFetcher {
+public class PageFetcher {
 	private static final String MW_CONTENT_TEXT = "mw-content-text";
-	public static final String PARAGRAPH = "p";
+	private static final String PARAGRAPH = "p";
+	public static final String BODY = "body";
 	private long lastRequestTime = -1;
 	private long minInterval = 1000;
 
@@ -33,6 +34,13 @@ public class HtmlFetcher {
 		Element content = doc.getElementById(MW_CONTENT_TEXT);
 
 		return content.select(PARAGRAPH);
+	}
+
+	public String getTxtFileContent(String url) throws IOException {
+		Connection conn = Jsoup.connect(url);
+		Document doc = conn.get();
+		Element content = doc.getElementById(BODY);
+		return content.text();
 	}
 
 	/**

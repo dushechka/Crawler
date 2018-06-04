@@ -23,7 +23,7 @@ public class HtmlCrawler implements Crawler {
 	private Queue<String> queue = new LinkedList<>();
 
 	// fetcher used to get pages from site
-	private final static HtmlFetcher hf = new HtmlFetcher();
+	private final static PageFetcher hf = new PageFetcher();
 
 	/**
 	 * Constructor.

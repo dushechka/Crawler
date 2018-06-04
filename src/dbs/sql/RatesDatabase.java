@@ -33,6 +33,26 @@ public class RatesDatabase {
                 "SELECT *, COUNT(*) FROM pages GROUP BY siteID");
     }
 
+    /**
+     * Get's all of the links to robots.txt from database.
+     *
+     * @return Links to robots.txt files or null if none.
+     * @throws SQLException
+     */
+    public @Nullable Set<String> getRobotsTxtPages() throws SQLException {
+        Set<String> links = new HashSet<>();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT URL FROM pages WHERE URL LIKE '%robots.txt'");
+        while (rs.next()) {
+            links.add(rs.getString("URL"));
+        }
+        if (links.size() > 0) {
+            return links;
+        } else {
+            return null;
+        }
+    }
+
     public Set<Page> getSinglePages() throws SQLException {
         Set<Page> pages = new HashSet<>();
         ResultSet rs = getPagesWithCounts();
