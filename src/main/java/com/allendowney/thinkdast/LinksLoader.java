@@ -3,11 +3,13 @@ package com.allendowney.thinkdast;
 import com.allendowney.thinkdast.interfaces.SitemapLoader;
 import com.panforge.robotstxt.RobotsTxt;
 
+import javax.xml.bind.Element;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,10 +45,12 @@ public class LinksLoader implements SitemapLoader {
     public Map<String, Set<String>> getPagesFromRobotsTxt(String robotsTxtLink) throws IOException {
         try (InputStream robotsTxtStream = new URL(robotsTxtLink).openStream()) {
             RobotsTxt robotsTxt = RobotsTxt.read(robotsTxtStream);
-            PageFetcher pf = new PageFetcher();
             for (String sitemap : robotsTxt.getSitemaps()) {
                 System.out.println("Sitemap: " + sitemap);
-                pf.fetchSitemapElements(sitemap);
+                Iterator links = new SitemapLinksIterable(sitemap).iterator();
+                while (links.hasNext()) {
+                    links.next();
+                }
             }
         }
         return null;
