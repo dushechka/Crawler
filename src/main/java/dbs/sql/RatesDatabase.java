@@ -158,17 +158,29 @@ public class RatesDatabase {
      *                      last time or null, if never was
      * @throws SQLException
      */
-    public void insertRowInPagesTable(URL url, int siteId,
+    public void insertRowInPagesTable(String url, int siteId,
                                       @Nullable Timestamp lastScanDate) throws SQLException {
-            // checking, if url is malformed
-            System.out.println("Creating URL from: " + url);
-            PreparedStatement stmt = conn.prepareStatement(
-                                        "INSERT INTO pages (URL, siteID, lastScanDate) VALUES (?, ?, ?)" );
-            stmt.setString(1, url.toString());
-            stmt.setInt(2, siteId);
-            stmt.setTimestamp(3, lastScanDate);
-            stmt.execute();
-            stmt.close();
+        System.out.println("Creating URL from: " + url);
+        PreparedStatement stmt = conn.prepareStatement(
+                "INSERT INTO pages (URL, siteID, lastScanDate) VALUES (?, ?, ?)" );
+        stmt.setString(1, url);
+        stmt.setInt(2, siteId);
+        stmt.setTimestamp(3, lastScanDate);
+        stmt.execute();
+        stmt.close();
+    }
+
+    public void insertRowsInPagesTable(Set<String> urls, int siteId,
+                                          @Nullable Timestamp lastScanDate) throws SQLException {
+        PreparedStatement pst = conn.prepareStatement(
+                "INSERT INTO pages (URL, siteID, lastScanDate) VALUES (?, ?, ?)" );
+        pst.setInt(2, siteId);
+        pst.setTimestamp(3, lastScanDate);
+        for (String url : urls) {
+            pst.setString(1, url);
+            pst.execute();
+        }
+        pst.close();
     }
 
     public void updateLastScanDate(Integer pageId,
@@ -198,5 +210,16 @@ public class RatesDatabase {
             stmt.execute();
         }
         stmt.close();
+    }
+
+    public Integer getSiteIdByHostname(String hostname) throws SQLException {
+        Integer result = null;
+        PreparedStatement stmt = conn.prepareStatement("SELECT siteID FROM pages WHERE URL LIKE ?");
+        stmt.setString(1, hostname);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            result = rs.getInt(PAGES_SITE_ID_COLUMN);
+        }
+        return result;
     }
 }

@@ -36,7 +36,7 @@ public class WebCrawler {
                 if (LinksLoader.isSiteAvailable(address)) {
                     System.out.println("Adding robots.txt link for " + address);
                     String robotsAddress = address + ROBOTS_TXT_APPENDIX;
-                    ratesDb.insertRowInPagesTable(new URL(robotsAddress), page.getSiteId(), null);
+                    ratesDb.insertRowInPagesTable(robotsAddress, page.getSiteId(), null);
                 }
             } catch (MalformedURLException | UnknownHostException e) {
                 e.printStackTrace();
@@ -64,22 +64,32 @@ public class WebCrawler {
             try {
                 ratesDb.updateLastScanDate(url, new Timestamp(System.currentTimeMillis()));
                 Map<String, Set<String>> links = ln.getPagesFromRobotsTxt(url);
-//                for (Map.Entry<String, Set<String>> entry : links.entrySet()) {
-//                    System.out.println("Sitemap: " + entry.getKey());
-//                    for (String link : entry.getValue()) {
-//                        System.out.println("\t" + link);
-//                    }
-//                }
+                saveLinksToDb(links, ratesDb);
             } catch (Exception exc) {
+                exc.printStackTrace();
                 ratesDb.updateLastScanDate(url, null);
             }
         }
     }
 
+    private static void saveLinksToDb(Map<String, Set<String>> links,
+                                         RatesDatabase db) throws MalformedURLException, SQLException {
+        for (Map.Entry<String, Set<String>> entry : links.entrySet()) {
+            String sitemap = entry.getKey();
+//            Integer id = db.getSiteIdByHostname((new URL(sitemap).getHost()));
+                System.out.println("Adding sitemap: " + sitemap);
+                db.insertRowsInPagesTable(entry.getValue(), 12, null);
+//                for (String link : entry.getValue()) {
+//                    System.out.println("\t" + link);
+//                    db.insertRowInPagesTable(link, 11, null);
+//                }
+            }
+    }
+
     public static void main(String[] args) {
         try {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
-//            insertLinksToRobotsPages(ratesDb);
+            insertLinksToRobotsPages(ratesDb);
             fetchLinksFromRobotsPages(ratesDb);
         } catch (Exception exc) {
             exc.printStackTrace();

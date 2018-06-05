@@ -60,11 +60,9 @@ public class LinksLoader implements SitemapLoader {
     @Override
     public Set<String> getPagesFromSitemap(String sitemap) {
         Set<String> links = new HashSet<>();
-        System.out.println("Loading sitemap: " + sitemap);
         Iterator<Element> linksIterator = new SitemapLinksIterable(sitemap).iterator();
             while (linksIterator.hasNext()) {
                 String link = linksIterator.next().getElementsByTag(LOC_TAG).text();
-                System.out.println(link);
                 links.add(link);
             }
         return links;

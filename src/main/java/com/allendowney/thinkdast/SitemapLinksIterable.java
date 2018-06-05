@@ -8,6 +8,7 @@ import java.util.*;
 
 public class SitemapLinksIterable implements Iterable<Element> {
     private static final String LOC_TAG = "loc";
+    public static final String URL_TAG = "url";
     private String root;
     private Deque<Element> stack;
 
@@ -48,7 +49,7 @@ public class SitemapLinksIterable implements Iterable<Element> {
             }
 
             Element node = stack.pop();
-            if (node.tagName().equals("url")) {
+            if (node.tagName().equals(URL_TAG)) {
                 return node;
             } else {
                 try {
