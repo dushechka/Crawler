@@ -180,6 +180,15 @@ public class RatesDatabase {
             stmt.close();
     }
 
+    public void updateLastScanDate(String pageURL,
+                                   @Nullable Timestamp lastScanDate) throws SQLException{
+        PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE URL = ?");
+        stmt.setTimestamp(1, lastScanDate);
+        stmt.setString(2, pageURL);
+        stmt.execute();
+        stmt.close();
+    }
+
     public void updateLastScanDates(Set<Integer> pageIds,
                                        @Nullable Timestamp lastScanDate) throws SQLException{
         PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE ID = ?");

@@ -9,6 +9,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.sql.*;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import static com.allendowney.thinkdast.LinksLoader.ROBOTS_TXT_APPENDIX;
 
@@ -60,7 +61,18 @@ public class WebCrawler {
         Set<String> robotsTxtLinks = ratesDb.getUnscannedRobotsTxtLinks();
         LinksLoader ln = new LinksLoader();
         for (String url : robotsTxtLinks) {
-            ln.getPagesFromRobotsTxt(url);
+            try {
+                ratesDb.updateLastScanDate(url, new Timestamp(System.currentTimeMillis()));
+                Map<String, Set<String>> links = ln.getPagesFromRobotsTxt(url);
+//                for (Map.Entry<String, Set<String>> entry : links.entrySet()) {
+//                    System.out.println("Sitemap: " + entry.getKey());
+//                    for (String link : entry.getValue()) {
+//                        System.out.println("\t" + link);
+//                    }
+//                }
+            } catch (Exception exc) {
+                ratesDb.updateLastScanDate(url, null);
+            }
         }
     }
 

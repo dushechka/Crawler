@@ -2,20 +2,19 @@ package com.allendowney.thinkdast;
 
 import com.allendowney.thinkdast.interfaces.SitemapLoader;
 import com.panforge.robotstxt.RobotsTxt;
+import org.jsoup.nodes.Element;
 
-import javax.xml.bind.Element;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class LinksLoader implements SitemapLoader {
     private static final String PROTOCOL_DELIMITER = "://";
     public static final String ROBOTS_TXT_APPENDIX = "/robots.txt";
+    private static final String LOC_TAG = "loc";
 
     /**
      * Takes arbitrary link to the site and returns it's address
@@ -45,28 +44,29 @@ public class LinksLoader implements SitemapLoader {
     public Map<String, Set<String>> getPagesFromRobotsTxt(String robotsTxtLink) throws IOException {
         try (InputStream robotsTxtStream = new URL(robotsTxtLink).openStream()) {
             RobotsTxt robotsTxt = RobotsTxt.read(robotsTxtStream);
-            for (String sitemap : robotsTxt.getSitemaps()) {
-                System.out.println("Sitemap: " + sitemap);
-                Iterator links = new SitemapLinksIterable(sitemap).iterator();
-                while (links.hasNext()) {
-                    links.next();
-                }
-            }
+            return getPagesFromSitemaps(new HashSet<>(robotsTxt.getSitemaps()));
         }
-        return null;
-    }
-
-    @Override
-    public Map<String, Set<String>> getPagesFromSitemap(String sitemapLink) {
-        return null;
     }
 
     @Override
     public Map<String, Set<String>> getPagesFromSitemaps(Set<String> sitemapLinks) {
-        return null;
+        Map<String, Set<String>> links = new HashMap<>();
+        for (String sitemap : sitemapLinks) {
+            links.put(sitemap, getPagesFromSitemap(sitemap));
+        }
+        return links;
     }
 
-    private Set<String> getPagesFromSitemapWithUrls(URL sitemap) {
-        return null;
+    @Override
+    public Set<String> getPagesFromSitemap(String sitemap) {
+        Set<String> links = new HashSet<>();
+        System.out.println("Loading sitemap: " + sitemap);
+        Iterator<Element> linksIterator = new SitemapLinksIterable(sitemap).iterator();
+            while (linksIterator.hasNext()) {
+                String link = linksIterator.next().getElementsByTag(LOC_TAG).text();
+                System.out.println(link);
+                links.add(link);
+            }
+        return links;
     }
 }

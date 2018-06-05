@@ -12,7 +12,8 @@ import org.jsoup.select.Elements;
 public class PageFetcher {
 	private static final String MW_CONTENT_TEXT = "mw-content-text";
 	private static final String PARAGRAPH = "p";
-	public static final String COLLAPSIBLE_CONTENT = "collapsible-content";
+	private static final String SITEMAP_TAG = "sitemap";
+	private static final String URL_TAG = "url";
 	private static long lastRequestTime = -1;
 	private static long minInterval = 1000;
 
@@ -44,9 +45,8 @@ public class PageFetcher {
 			Connection conn = Jsoup.connect(url);
 			Document doc = conn.get();
 
-			content = doc.getElementsByTag("sitemap");
-			content.addAll(doc.getElementsByTag("url"));
-//			System.out.println(content);
+			content = doc.getElementsByTag(SITEMAP_TAG);
+			content.addAll(doc.getElementsByTag(URL_TAG));
 		}
 		return content;
 	}

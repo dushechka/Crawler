@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class SitemapLinksIterable implements Iterable<Element> {
+    private static final String LOC_TAG = "loc";
     private String root;
     private Deque<Element> stack;
 
@@ -33,7 +34,7 @@ public class SitemapLinksIterable implements Iterable<Element> {
         return new SitemapLinksIterator();
     }
 
-    private class SitemapLinksIterator implements Iterator<Element> {
+    public class SitemapLinksIterator implements Iterator<Element> {
 
         @Override
         public boolean hasNext() {
@@ -48,13 +49,12 @@ public class SitemapLinksIterable implements Iterable<Element> {
 
             Element node = stack.pop();
             if (node.tagName().equals("url")) {
-                System.out.println("Returning: " + node);
                 return node;
             } else {
                 try {
                     pushNodesToStack(
                             PageFetcher.fetchSitemapElements(
-                                    node.getElementsByTag("loc").text()));
+                                    node.getElementsByTag(LOC_TAG).text()));
                 } catch (IOException exc) {
                     exc.printStackTrace();
                 }
