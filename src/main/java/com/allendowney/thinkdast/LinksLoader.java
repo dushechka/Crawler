@@ -43,8 +43,10 @@ public class LinksLoader implements SitemapLoader {
     public Map<String, Set<String>> getPagesFromRobotsTxt(String robotsTxtLink) throws IOException {
         try (InputStream robotsTxtStream = new URL(robotsTxtLink).openStream()) {
             RobotsTxt robotsTxt = RobotsTxt.read(robotsTxtStream);
+            PageFetcher pf = new PageFetcher();
             for (String sitemap : robotsTxt.getSitemaps()) {
                 System.out.println("Sitemap: " + sitemap);
+                pf.fetchSitemapElements(sitemap);
             }
         }
         return null;

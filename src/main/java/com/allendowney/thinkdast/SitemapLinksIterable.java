@@ -1,5 +1,6 @@
 package com.allendowney.thinkdast;
 
+import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 
 import java.net.URL;
@@ -10,9 +11,9 @@ import java.util.NoSuchElementException;
 
 public class SitemapLinksIterable implements Iterable<Node> {
 
-    private URL root;
+    private String root;
 
-    public SitemapLinksIterable(URL root) {
+    public SitemapLinksIterable(String root) {
         this.root = root;
     }
 
@@ -24,7 +25,7 @@ public class SitemapLinksIterable implements Iterable<Node> {
     private class SitemapLinksIterator implements Iterator<Node> {
         private Deque<Node> stack;
 
-        public SitemapLinksIterator(URL root) {
+        public SitemapLinksIterator(String root) {
             stack = new ArrayDeque<>();
         }
 

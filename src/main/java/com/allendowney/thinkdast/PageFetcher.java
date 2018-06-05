@@ -12,7 +12,7 @@ import org.jsoup.select.Elements;
 public class PageFetcher {
 	private static final String MW_CONTENT_TEXT = "mw-content-text";
 	private static final String PARAGRAPH = "p";
-	public static final String BODY = "body";
+	public static final String COLLAPSIBLE_CONTENT = "collapsible-content";
 	private long lastRequestTime = -1;
 	private long minInterval = 1000;
 
@@ -34,6 +34,19 @@ public class PageFetcher {
 		Element content = doc.getElementById(MW_CONTENT_TEXT);
 
 		return content.select(PARAGRAPH);
+	}
+
+	public Elements fetchSitemapElements(String url) throws IOException {
+	    if (!url.contains(".gz")) {
+			sleepIfNeeded();
+
+			Connection conn = Jsoup.connect(url);
+			Document doc = conn.get();
+
+            Element content = doc.getElementById("collapsible0");
+			System.out.println(doc);
+		}
+		return null;
 	}
 
 	/**

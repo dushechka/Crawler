@@ -67,7 +67,7 @@ public class WebCrawler {
     public static void main(String[] args) {
         try {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
-            insertLinksToRobotsPages(ratesDb);
+//            insertLinksToRobotsPages(ratesDb);
             fetchLinksFromRobotsPages(ratesDb);
         } catch (Exception exc) {
             exc.printStackTrace();
