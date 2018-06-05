@@ -33,6 +33,17 @@ public class RatesDatabase {
                 "SELECT *, COUNT(*) FROM pages GROUP BY siteID");
     }
 
+
+    /**
+     * Get rows from "Pages" table where lastScanDate is <code>NULL</code>,
+     * grouped by siteID, containing <code>COUNT(*)</code> field.
+     */
+    private ResultSet getUnscannedPagesWithCounts() throws SQLException {
+        Statement stmt = conn.createStatement();
+        return stmt.executeQuery(
+                "SELECT *, COUNT(*) FROM pages WHERE lastScanDate IS NULL GROUP BY siteID");
+    }
+
     /**
      * Gets unscanned links to robots.txt from database.
      *
@@ -70,12 +81,28 @@ public class RatesDatabase {
         return pages;
     }
 
+    public Set<Page> getUnscannedSinglePages() throws SQLException {
+        Set<Page> pages = new HashSet<>();
+        ResultSet rs = getUnscannedPagesWithCounts();
+        while (rs.next()) {
+            if (rs.getInt(COUNT_COLUMN) == 1) {
+                pages.add(new ModifiablePage(rs.getInt(PAGES_ID_COLUMN),
+                        rs.getString(PAGES_URL_COLUMN),
+                        rs.getInt(PAGES_SITE_ID_COLUMN),
+                        rs.getTimestamp(PAGES_FOUND_DATE_TIME_COLUMN),
+                        rs.getTimestamp(PAGES_LAST_SCAN_DATE_COLUMN)));
+            }
+        }
+        rs.close();
+        return pages;
+    }
+
     /**
      * Get collection of sites with only one page from "Pages" table.
      * @return  Site ID's
      * @throws SQLException
      */
-    public Set<Integer> getSitesWithSinglePagesIds() throws SQLException {
+    public Set<Integer> getSitesWithSinglePageIds() throws SQLException {
         Set<Integer> sites = new HashSet<>();
         ResultSet rs = getPagesWithCounts();
         while (rs.next()) {
@@ -92,7 +119,7 @@ public class RatesDatabase {
      * @return  Site ID's
      * @throws SQLException
      */
-    public Set<Integer> getSitesWithMultiplePagesIds() throws SQLException {
+    public Set<Integer> getSitesWithMultiplePageIds() throws SQLException {
         Set<Integer> sites = new HashSet<>();
         ResultSet rs = getPagesWithCounts();
         while (rs.next()) {

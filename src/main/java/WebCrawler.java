@@ -23,7 +23,7 @@ public class WebCrawler {
      *                      execute some of the queries.
      */
     private static void insertLinksToRobotsPages(RatesDatabase ratesDb) throws SQLException {
-        Set<Page> pages = selectUnscannedPages(ratesDb.getSinglePages());
+        Set<Page> pages = ratesDb.getUnscannedSinglePages();
         Set<Integer> pageIds = new HashSet<>();
         for (Page page : pages) {
             pageIds.add(page.getiD());
@@ -56,18 +56,21 @@ public class WebCrawler {
         return unscanned;
     }
 
+    private static void fetchLinksFromRobotsPages(RatesDatabase ratesDb) throws SQLException, IOException {
+        Set<String> robotsTxtLinks = ratesDb.getUnscannedRobotsTxtLinks();
+        LinksLoader ln = new LinksLoader();
+        for (String url : robotsTxtLinks) {
+            ln.getPagesFromRobotsTxt(url);
+        }
+    }
+
     public static void main(String[] args) {
         try {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
-//            insertLinksToRobotsPages(ratesDb);
-            Set<String> robotsTxtLinks = ratesDb.getUnscannedRobotsTxtLinks();
-            LinksLoader ln = new LinksLoader();
-            for (String url : robotsTxtLinks) {
-                ln.getPagesFromRobotsTxt(url);
-            }
+            insertLinksToRobotsPages(ratesDb);
+            fetchLinksFromRobotsPages(ratesDb);
         } catch (Exception exc) {
             exc.printStackTrace();
         }
     }
-
 }
