@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 import java.util.Set;
 
 public class LinksLoader implements SitemapLoader {
@@ -39,7 +40,7 @@ public class LinksLoader implements SitemapLoader {
     }
 
     @Override
-    public Set<String> getPagesFromRobotsTxt(String robotsTxtLink) throws IOException {
+    public Map<String, Set<String>> getPagesFromRobotsTxt(String robotsTxtLink) throws IOException {
         try (InputStream robotsTxtStream = new URL(robotsTxtLink).openStream()) {
             RobotsTxt robotsTxt = RobotsTxt.read(robotsTxtStream);
             for (String sitemap : robotsTxt.getSitemaps()) {
@@ -50,12 +51,12 @@ public class LinksLoader implements SitemapLoader {
     }
 
     @Override
-    public Set<String> getPagesFromSitemap(String sitemapLink) {
+    public Map<String, Set<String>> getPagesFromSitemap(String sitemapLink) {
         return null;
     }
 
     @Override
-    public Set<String> getPagesFromSitemaps(Set<String> sitemapLinks) {
+    public Map<String, Set<String>> getPagesFromSitemaps(Set<String> sitemapLinks) {
         return null;
     }
 
