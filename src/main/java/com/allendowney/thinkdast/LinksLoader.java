@@ -47,6 +47,14 @@ public class LinksLoader implements SitemapLoader {
         }
     }
 
+    public Set<String> getLinksFromSitemap(String sitemap) throws IOException {
+        Set<String> links = new HashSet<>();
+        for (Element elt : PageFetcher.fetchSitemapElements(sitemap)) {
+            links.add(elt.getElementsByTag(LOC_TAG).text());
+        }
+        return links;
+    }
+
     @Override
     public Map<String, Set<String>> getPagesFromRobotsTxt(String robotsTxtLink) throws IOException {
         try (InputStream robotsTxtStream = new URL(robotsTxtLink).openStream()) {

@@ -22,7 +22,7 @@ public class WebCrawler {
      *                      execute some of the queries.
      */
     private static void insertLinksToRobotsPages(RatesDatabase ratesDb) throws SQLException {
-        Set<Page> pages = ratesDb.getUnscannedSinglePages();
+        Set<Page> pages = selectUnscannedPages(ratesDb.getSinglePages());
         Set<Integer> pageIds = new HashSet<>();
         for (Page page : pages) {
             pageIds.add(page.getiD());
@@ -70,8 +70,17 @@ public class WebCrawler {
         }
     }
 
-    private static void fetchLinksFromSitmaps(RatesDatabase ratesDb) throws SQLException {
+    private static void fetchLinksFromSitmaps(RatesDatabase ratesDb) throws SQLException, IOException {
         Set<String> links = ratesDb.getUnscannedSitemapLinks();
+        LinksLoader ln = new LinksLoader();
+        for (String link : links) {
+            System.out.println("Start working with sitemap: " + link);
+            if (ratesDb.getLastScanDate(link) == null) {
+                ratesDb.updateLastScanDate(link, new Timestamp(System.currentTimeMillis()));
+                System.out.println("Saving links from " + link);
+                saveLinksToDb(link, ln.getLinksFromSitemap(link), ratesDb);
+            }
+        }
     }
 
     /**
@@ -97,6 +106,7 @@ public class WebCrawler {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
             insertLinksToRobotsPages(ratesDb);
             fetchLinksFromRobotsTxt(ratesDb);
+            fetchLinksFromSitmaps(ratesDb);
         } catch (Exception exc) {
             exc.printStackTrace();
         }
