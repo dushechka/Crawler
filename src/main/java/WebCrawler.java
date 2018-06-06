@@ -78,8 +78,14 @@ public class WebCrawler {
             for (String link : links) {
                 System.out.println("Start working with sitemap: " + link);
                 if (ratesDb.getLastScanDate(link) == null) {
-                    ratesDb.updateLastScanDate(link, new Timestamp(System.currentTimeMillis()));
-                    saveLinksToDb(link, ln.getLinksFromSitemap(link), ratesDb);
+                    try {
+                        ratesDb.updateLastScanDate(link, new Timestamp(System.currentTimeMillis()));
+                        saveLinksToDb(link, ln.getLinksFromSitemap(link), ratesDb);
+                    } catch (IOException | SQLException exc) {
+                        ratesDb.updateLastScanDate(link, null);
+                        exc.printStackTrace();
+                        return;
+                    }
                 }
             }
         } while (!links.isEmpty());
