@@ -47,7 +47,7 @@ public class RatesDatabase {
     /**
      * Gets unscanned links to robots.txt from database.
      *
-     * @return Unscanned links to robots.txt files or null if none.
+     * @return Unscanned links to robots.txt files.
      * @throws SQLException
      */
     public @Nullable Set<String> getUnscannedRobotsTxtLinks() throws SQLException {
@@ -58,11 +58,24 @@ public class RatesDatabase {
         while (rs.next()) {
             links.add(rs.getString("URL"));
         }
-        if (links.size() > 0) {
-            return links;
-        } else {
-            return null;
+        return links;
+    }
+
+    /**
+     * Gets unscanned links to sitmep.xml from database.
+     *
+     * @return Unscanned links to sitmep.xml files.
+     * @throws SQLException
+     */
+    public @Nullable Set<String> getUnscannedSitemapLinks() throws SQLException {
+        Set<String> links = new HashSet<>();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(
+                "SELECT URL FROM pages WHERE URL LIKE '%sitemap.xml' AND lastScanDate IS NULL");
+        while (rs.next()) {
+            links.add(rs.getString("URL"));
         }
+        return links;
     }
 
     public Set<Page> getSinglePages() throws SQLException {
@@ -183,6 +196,26 @@ public class RatesDatabase {
         pst.close();
     }
 
+    /**
+     * Gets lastScanDate timestamp from pages table
+     * in a row, where page with <code>url</code>
+     * is located.
+     *
+     * @param url link, which is present in db
+     * @return    lastScanDate timestamp
+     * @throws SQLException
+     */
+    public Timestamp getLastScanDate(String url) throws SQLException {
+        PreparedStatement pst = conn.prepareStatement(
+                "SELECT lastScanDate FROM pages WHERE URL = ?");
+        pst.setString(1, url);
+        ResultSet rs = pst.executeQuery();
+        if (rs.next()) {
+            return rs.getTimestamp(PAGES_LAST_SCAN_DATE_COLUMN);
+        }
+        return null;
+    }
+
     public void updateLastScanDate(Integer pageId,
                                     @Nullable Timestamp lastScanDate) throws SQLException{
         PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE siteId = ?");
@@ -212,10 +245,10 @@ public class RatesDatabase {
         stmt.close();
     }
 
-    public Integer getSiteIdByHostname(String hostname) throws SQLException {
+    public Integer getSiteIdByLink(String link) throws SQLException {
         Integer result = null;
-        PreparedStatement stmt = conn.prepareStatement("SELECT siteID FROM pages WHERE URL LIKE ?");
-        stmt.setString(1, hostname);
+        PreparedStatement stmt = conn.prepareStatement("SELECT siteID FROM pages WHERE URL = ?");
+        stmt.setString(1, link);
         ResultSet rs = stmt.executeQuery();
         if (rs.next()) {
             result = rs.getInt(PAGES_SITE_ID_COLUMN);

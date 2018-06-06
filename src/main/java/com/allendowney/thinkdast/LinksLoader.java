@@ -40,6 +40,13 @@ public class LinksLoader implements SitemapLoader {
         return result;
     }
 
+    public Set<String> getLinksFromRobotsTxt(String robotsTxtLink) throws IOException {
+        try (InputStream robotsTxtStream = new URL(robotsTxtLink).openStream()) {
+            RobotsTxt robotsTxt = RobotsTxt.read(robotsTxtStream);
+            return new HashSet<>(robotsTxt.getSitemaps());
+        }
+    }
+
     @Override
     public Map<String, Set<String>> getPagesFromRobotsTxt(String robotsTxtLink) throws IOException {
         try (InputStream robotsTxtStream = new URL(robotsTxtLink).openStream()) {

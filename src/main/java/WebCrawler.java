@@ -5,11 +5,9 @@ import dbs.sql.orm.Page;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.sql.*;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import static com.allendowney.thinkdast.LinksLoader.ROBOTS_TXT_APPENDIX;
 
@@ -57,14 +55,14 @@ public class WebCrawler {
         return unscanned;
     }
 
-    private static void fetchLinksFromRobotsPages(RatesDatabase ratesDb) throws SQLException, IOException {
+    private static void fetchLinksFromRobotsTxt(RatesDatabase ratesDb) throws SQLException, IOException {
         Set<String> robotsTxtLinks = ratesDb.getUnscannedRobotsTxtLinks();
         LinksLoader ln = new LinksLoader();
         for (String url : robotsTxtLinks) {
             try {
                 ratesDb.updateLastScanDate(url, new Timestamp(System.currentTimeMillis()));
-                Map<String, Set<String>> links = ln.getPagesFromRobotsTxt(url);
-                saveLinksToDb(links, ratesDb);
+                Set<String> links = ln.getLinksFromRobotsTxt(url);
+                saveLinksToDb(url, links, ratesDb);
             } catch (Exception exc) {
                 exc.printStackTrace();
                 ratesDb.updateLastScanDate(url, null);
@@ -72,25 +70,33 @@ public class WebCrawler {
         }
     }
 
-    private static void saveLinksToDb(Map<String, Set<String>> links,
+    private static void fetchLinksFromSitmaps(RatesDatabase ratesDb) throws SQLException {
+        Set<String> links = ratesDb.getUnscannedSitemapLinks();
+    }
+
+    /**
+     *
+     * @param url   String in DB, by which we can get site ID
+     * @param links
+     * @param db
+     * @throws MalformedURLException
+     * @throws SQLException
+     */
+    private static void saveLinksToDb(String url, Set<String> links,
                                          RatesDatabase db) throws MalformedURLException, SQLException {
-        for (Map.Entry<String, Set<String>> entry : links.entrySet()) {
-            String sitemap = entry.getKey();
-//            Integer id = db.getSiteIdByHostname((new URL(sitemap).getHost()));
-                System.out.println("Adding sitemap: " + sitemap);
-                db.insertRowsInPagesTable(entry.getValue(), 12, null);
-//                for (String link : entry.getValue()) {
-//                    System.out.println("\t" + link);
-//                    db.insertRowInPagesTable(link, 11, null);
-//                }
-            }
+        Integer siteId = db.getSiteIdByLink(url);
+        System.out.println("Adding links to DB from " + url);
+        System.out.println("Site ID is: " + siteId);
+        if (siteId != null) {
+            db.insertRowsInPagesTable(links, siteId, null);
+        }
     }
 
     public static void main(String[] args) {
         try {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
             insertLinksToRobotsPages(ratesDb);
-            fetchLinksFromRobotsPages(ratesDb);
+            fetchLinksFromRobotsTxt(ratesDb);
         } catch (Exception exc) {
             exc.printStackTrace();
         }
