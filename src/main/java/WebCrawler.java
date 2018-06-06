@@ -71,16 +71,19 @@ public class WebCrawler {
     }
 
     private static void fetchLinksFromSitmaps(RatesDatabase ratesDb) throws SQLException, IOException {
-        Set<String> links = ratesDb.getUnscannedSitemapLinks();
         LinksLoader ln = new LinksLoader();
-        for (String link : links) {
-            System.out.println("Start working with sitemap: " + link);
-            if (ratesDb.getLastScanDate(link) == null) {
-                ratesDb.updateLastScanDate(link, new Timestamp(System.currentTimeMillis()));
-                System.out.println("Saving links from " + link);
-                saveLinksToDb(link, ln.getLinksFromSitemap(link), ratesDb);
+        Set<String> links;
+        do {
+            links = ratesDb.getUnscannedSitemapLinks();
+            for (String link : links) {
+                System.out.println("Start working with sitemap: " + link);
+                if (ratesDb.getLastScanDate(link) == null) {
+                    ratesDb.updateLastScanDate(link, new Timestamp(System.currentTimeMillis()));
+                    System.out.println("Saving links from " + link);
+                    saveLinksToDb(link, ln.getLinksFromSitemap(link), ratesDb);
+                }
             }
-        }
+        } while (!links.isEmpty());
     }
 
     /**
