@@ -173,7 +173,6 @@ public class RatesDatabase {
      */
     public void insertRowInPagesTable(String url, int siteId,
                                       @Nullable Timestamp lastScanDate) throws SQLException {
-        System.out.println("Creating URL from: " + url);
         PreparedStatement stmt = conn.prepareStatement(
                 "INSERT INTO pages (URL, siteID, lastScanDate) VALUES (?, ?, ?)" );
         stmt.setString(1, url);

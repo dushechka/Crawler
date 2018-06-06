@@ -79,7 +79,6 @@ public class WebCrawler {
                 System.out.println("Start working with sitemap: " + link);
                 if (ratesDb.getLastScanDate(link) == null) {
                     ratesDb.updateLastScanDate(link, new Timestamp(System.currentTimeMillis()));
-                    System.out.println("Saving links from " + link);
                     saveLinksToDb(link, ln.getLinksFromSitemap(link), ratesDb);
                 }
             }
@@ -98,7 +97,6 @@ public class WebCrawler {
                                          RatesDatabase db) throws MalformedURLException, SQLException {
         Integer siteId = db.getSiteIdByLink(url);
         System.out.println("Adding links to DB from " + url);
-        System.out.println("Site ID is: " + siteId);
         if (siteId != null) {
             db.insertRowsInPagesTable(links, siteId, null);
         }
