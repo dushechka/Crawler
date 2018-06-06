@@ -1,6 +1,5 @@
 package com.allendowney.thinkdast;
 
-import com.allendowney.thinkdast.interfaces.SitemapLoader;
 import com.panforge.robotstxt.RobotsTxt;
 import org.jsoup.nodes.Element;
 
@@ -11,7 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
-public class LinksLoader implements SitemapLoader {
+public class LinksLoader {
     private static final String PROTOCOL_DELIMITER = "://";
     public static final String ROBOTS_TXT_APPENDIX = "/robots.txt";
     private static final String LOC_TAG = "loc";
@@ -52,34 +51,6 @@ public class LinksLoader implements SitemapLoader {
         for (Element elt : PageFetcher.fetchSitemapElements(sitemap)) {
             links.add(elt.getElementsByTag(LOC_TAG).text());
         }
-        return links;
-    }
-
-    @Override
-    public Map<String, Set<String>> getPagesFromRobotsTxt(String robotsTxtLink) throws IOException {
-        try (InputStream robotsTxtStream = new URL(robotsTxtLink).openStream()) {
-            RobotsTxt robotsTxt = RobotsTxt.read(robotsTxtStream);
-            return getPagesFromSitemaps(new HashSet<>(robotsTxt.getSitemaps()));
-        }
-    }
-
-    @Override
-    public Map<String, Set<String>> getPagesFromSitemaps(Set<String> sitemapLinks) {
-        Map<String, Set<String>> links = new HashMap<>();
-        for (String sitemap : sitemapLinks) {
-            links.put(sitemap, getPagesFromSitemap(sitemap));
-        }
-        return links;
-    }
-
-    @Override
-    public Set<String> getPagesFromSitemap(String sitemap) {
-        Set<String> links = new HashSet<>();
-        Iterator<Element> linksIterator = new SitemapLinksIterable(sitemap).iterator();
-            while (linksIterator.hasNext()) {
-                String link = linksIterator.next().getElementsByTag(LOC_TAG).text();
-                links.add(link);
-            }
         return links;
     }
 }
