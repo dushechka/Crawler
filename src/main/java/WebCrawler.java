@@ -94,6 +94,7 @@ public class WebCrawler {
     private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException {
         for (int siteId : ratesDb.getSiteIds()) {
             Set<String> pages = ratesDb.getBunchOfUnscannedPages(siteId, 1000);
+            ratesDb.updateLastScanDatesByUrl(pages, new Timestamp(System.currentTimeMillis()));
             for (String link : pages) {
                 System.out.println(link);
             }

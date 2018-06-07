@@ -275,6 +275,17 @@ public class RatesDatabase {
         stmt.close();
     }
 
+    public void updateLastScanDatesByUrl(Set<String> pageUrls,
+                                    @Nullable Timestamp lastScanDate) throws SQLException{
+        PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE URL = ?");
+        stmt.setTimestamp(1, lastScanDate);
+        for (String url : pageUrls ) {
+            stmt.setString(2, url);
+            stmt.execute();
+        }
+        stmt.close();
+    }
+
     /**
      * Reads all site IDs from the database
      *
