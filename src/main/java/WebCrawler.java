@@ -1,4 +1,8 @@
+import com.allendowney.thinkdast.HtmlCrawler;
 import com.allendowney.thinkdast.LinksLoader;
+import com.allendowney.thinkdast.interfaces.Crawler;
+import com.allendowney.thinkdast.interfaces.Index;
+import com.allendowney.thinkdast.interfaces.TermContainer;
 import dbs.DBFactory;
 import dbs.sql.RatesDatabase;
 import dbs.sql.orm.Page;
@@ -8,6 +12,8 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.sql.*;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import static com.allendowney.thinkdast.LinksLoader.ROBOTS_TXT_APPENDIX;
 
@@ -92,11 +98,54 @@ public class WebCrawler {
     }
 
     private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException {
+        Crawler crawler = new HtmlCrawler(new Index() {
+            @Override
+            public boolean isIndexed(String url) {
+                return false;
+            }
+
+            @Override
+            public void add(String term, String url) {
+
+            }
+
+            @Override
+            public Set<String> getURLs(String term) {
+                return null;
+            }
+
+            @Override
+            public Map<String, Integer> getCounts(String term) {
+                return null;
+            }
+
+            @Override
+            public Integer getCount(String url, String term) {
+                return null;
+            }
+
+            @Override
+            public List<String> putTerms(TermContainer tc) {
+                System.out.println(tc);
+                return null;
+            }
+
+            @Override
+            public Set<String> termSet() {
+                return null;
+            }
+        });
         for (int siteId : ratesDb.getSiteIds()) {
             Set<String> pages = ratesDb.getBunchOfUnscannedPages(siteId, 1000);
             ratesDb.updateLastScanDatesByUrl(pages, new Timestamp(System.currentTimeMillis()));
-            for (String link : pages) {
-                System.out.println(link);
+            try {
+                System.out.println("Unscanned pages: ");
+                for (String page : crawler.crawlPages(pages)) {
+                    System.out.println(page);
+                }
+            } catch (NullPointerException exc) {
+                ratesDb.updateLastScanDatesByUrl(pages, null);
+                exc.printStackTrace();
             }
         }
     }

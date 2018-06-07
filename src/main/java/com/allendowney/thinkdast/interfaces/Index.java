@@ -52,9 +52,9 @@ public interface Index {
      * Adds vocabulary from page to the index.
      *
      * @param tc
-     * @return List of return values from Redis.
+     * @return List of terms indexed.
      */
-    List<Object> putTerms(TermContainer tc);
+    List<String> putTerms(TermContainer tc);
 
     /**
      * Returns the set of terms that have been indexed.

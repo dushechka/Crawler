@@ -153,7 +153,7 @@ public class JedisIndex implements Index {
 	 * @return List of return values from Redis.
 	 */
 	@Override
-	public List<Object> putTerms(TermContainer tc) {
+	public List<String> putTerms(TermContainer tc) {
 		Transaction t = jedis.multi();
 
 		String url = tc.getLabel();
@@ -170,7 +170,8 @@ public class JedisIndex implements Index {
 			t.sadd(urlSetKey(term), url);
 		}
 
-		return t.exec();
+		t.exec();
+		return null;
 	}
 
 	/**

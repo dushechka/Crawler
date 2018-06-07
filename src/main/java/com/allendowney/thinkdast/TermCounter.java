@@ -18,6 +18,7 @@ import org.jsoup.select.Elements;
  */
 public class TermCounter implements TermContainer {
 
+	public static final String LINE_SEPARATOR = "\n";
 	private Map<String, Integer> map;
 	private String label;
 
@@ -130,5 +131,24 @@ public class TermCounter implements TermContainer {
 	@Override
 	public Set<String> keySet() {
 		return map.keySet();
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Termcounter for page: ");
+		sb.append(label);
+		sb.append(LINE_SEPARATOR);
+//		for (String key: keySet()) {
+//			Integer count = get(key);
+//			sb.append(key);
+//			sb.append(", ");
+//			sb.append(count);
+//			sb.append(LINE_SEPARATOR);
+//		}
+		sb.append("Total of all counts = ");
+		sb.append(size());
+		sb.append(LINE_SEPARATOR);
+		return sb.toString();
 	}
 }

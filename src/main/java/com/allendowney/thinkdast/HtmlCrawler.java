@@ -7,6 +7,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
@@ -21,9 +22,6 @@ public class HtmlCrawler implements Crawler {
 
 	// queue of URLs to be indexed
 	private Queue<String> queue = new LinkedList<>();
-
-	// fetcher used to get pages from site
-	private final static PageFetcher hf = new PageFetcher();
 
 	/**
 	 * Constructor.
@@ -41,7 +39,7 @@ public class HtmlCrawler implements Crawler {
 
 	@Override
 	public String crawlPage(String url) throws IOException {
-		Elements paragraphs = hf.fetchPageParagraphs(url);
+		Elements paragraphs = PageFetcher.fetchPageParagraphs(url);
 		System.out.println("Crawling " + url);
 		TermContainer tc = new TermCounter(url, paragraphs);
 		index.putTerms(tc);
@@ -50,7 +48,19 @@ public class HtmlCrawler implements Crawler {
 
 	@Override
 	public Set<String> crawlPages(Set<String> links) {
-		return null;
+		Set<String> unprocessed = new HashSet<>();
+		for (String url : links) {
+		    try {
+				Elements paragraphs = PageFetcher.fetchPageParagraphs(url);
+				System.out.println("Crawling " + url);
+				TermContainer tc = new TermCounter(url, paragraphs);
+				index.putTerms(tc);
+				unprocessed.add(url);
+			} catch (IOException exc) {
+		    	exc.printStackTrace();
+			}
+		}
+		return unprocessed;
 	}
 
 	private String crawlFromQueue() throws IOException {
@@ -62,7 +72,7 @@ public class HtmlCrawler implements Crawler {
 		if (index.isIndexed(url)) {
 			return null;
 		}
-		Elements paragraphs = hf.fetchPageParagraphs(url);
+		Elements paragraphs = PageFetcher.fetchPageParagraphs(url);
 		System.out.println("Crawling " + url);
 		TermContainer tc = new TermCounter(url, paragraphs);
 		index.putTerms(tc);

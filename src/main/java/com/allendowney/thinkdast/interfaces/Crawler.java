@@ -14,7 +14,7 @@ public interface Crawler {
     /**
      * Crawl all of the given links and indexes them.
      * @param links
-     * @return Crawled pages URLs.
+     * @return pages, that was unable to index
      */
     Set<String> crawlPages(Set<String> links);
 
