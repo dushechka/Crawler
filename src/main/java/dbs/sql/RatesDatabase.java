@@ -17,6 +17,10 @@ public class RatesDatabase {
     private static final String PAGES_FOUND_DATE_TIME_COLUMN = "foundDateTime";
     private static final String PAGES_LAST_SCAN_DATE_COLUMN = "lastScanDate";
     private static final String COUNT_COLUMN = "COUNT(*)";
+    public static final String SITES_ID_COLUMN = "ID";
+    public static final String ROBOTS_TXT_APPENDIX = "robots.txt";
+    public static final String SITEMAP = "sitemap";
+    public static final String XML = "xml";
     private final Connection conn;
 
     public RatesDatabase(Connection conn) {
@@ -42,6 +46,33 @@ public class RatesDatabase {
         Statement stmt = conn.createStatement();
         return stmt.executeQuery(
                 "SELECT *, COUNT(*) FROM pages WHERE lastScanDate IS NULL GROUP BY siteID");
+    }
+
+    /**
+     * Returns amount of site's pages with <code>null</code>
+     * in lastScanDate.
+     *
+     * @param siteId id of the site for which to get pages
+     * @param limit  how much pages to extract
+     * @return unscanned leaf pages
+     * @throws SQLException
+     */
+    public Set<String> getBunchOfUnscannedPages(int siteId, int limit) throws SQLException {
+        Set<String> links = new HashSet<>();
+        PreparedStatement pst = conn.prepareStatement(
+                "SELECT URL FROM pages WHERE siteID = ? AND lastScanDate IS NULL LIMIT ?");
+        pst.setInt(1, siteId);
+        pst.setInt(2, limit);
+        ResultSet rs = pst.executeQuery();
+        while (rs.next()) {
+            String link = rs.getString(PAGES_URL_COLUMN);
+            if (!(link.contains(SITEMAP) && link.contains(XML))
+                    && !(link.contains(ROBOTS_TXT_APPENDIX))) {
+                links.add(link);
+            }
+        }
+        pst.close();
+        return links;
     }
 
     /**
@@ -242,6 +273,23 @@ public class RatesDatabase {
             stmt.execute();
         }
         stmt.close();
+    }
+
+    /**
+     * Reads all site IDs from the database
+     *
+     * @return All of the site IDs from the base
+     * @throws SQLException
+     */
+    public Set<Integer> getSiteIds() throws SQLException {
+        Set<Integer> siteIds = new HashSet<>();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT ID FROM sites");
+        while (rs.next()) {
+            siteIds.add(rs.getInt(SITES_ID_COLUMN));
+        }
+        stmt.close();
+        return siteIds;
     }
 
     public Integer getSiteIdByLink(String link) throws SQLException {

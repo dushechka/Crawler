@@ -91,6 +91,15 @@ public class WebCrawler {
         } while (!links.isEmpty());
     }
 
+    private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException {
+        for (int siteId : ratesDb.getSiteIds()) {
+            Set<String> pages = ratesDb.getBunchOfUnscannedPages(siteId, 1000);
+            for (String link : pages) {
+                System.out.println(link);
+            }
+        }
+    }
+
     /**
      *
      * @param url   String in DB, by which we can get site ID
@@ -111,9 +120,10 @@ public class WebCrawler {
     public static void main(String[] args) {
         try {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
-            insertLinksToRobotsPages(ratesDb);
-            fetchLinksFromRobotsTxt(ratesDb);
-            fetchLinksFromSitmaps(ratesDb);
+//            insertLinksToRobotsPages(ratesDb);
+//            fetchLinksFromRobotsTxt(ratesDb);
+//            fetchLinksFromSitmaps(ratesDb);
+            parseUnscannedPages(ratesDb);
         } catch (Exception exc) {
             exc.printStackTrace();
         }
