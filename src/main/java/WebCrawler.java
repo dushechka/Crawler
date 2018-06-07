@@ -53,22 +53,24 @@ public class WebCrawler {
         return unscanned;
     }
 
-    private static void fetchLinksFromRobotsTxt(RatesDatabase ratesDb) throws SQLException, IOException {
+    private static void fetchLinksFromRobotsTxt(RatesDatabase ratesDb) throws SQLException {
         Set<String> robotsTxtLinks = ratesDb.getUnscannedRobotsTxtLinks();
         LinksLoader ln = new LinksLoader();
         for (String url : robotsTxtLinks) {
-            try {
-                ratesDb.updateLastScanDate(url, new Timestamp(System.currentTimeMillis()));
-                Set<String> links = ln.getLinksFromRobotsTxt(url);
-                saveLinksToDb(url, links, ratesDb);
-            } catch (Exception exc) {
-                exc.printStackTrace();
-                ratesDb.updateLastScanDate(url, null);
+            if (ratesDb.getLastScanDate(url) == null) {
+                try {
+                    ratesDb.updateLastScanDate(url, new Timestamp(System.currentTimeMillis()));
+                    Set<String> links = ln.getLinksFromRobotsTxt(url);
+                    saveLinksToDb(url, links, ratesDb);
+                } catch (Exception exc) {
+                    exc.printStackTrace();
+                    ratesDb.updateLastScanDate(url, null);
+                }
             }
         }
     }
 
-    private static void fetchLinksFromSitmaps(RatesDatabase ratesDb) throws SQLException, IOException {
+    private static void fetchLinksFromSitmaps(RatesDatabase ratesDb) throws SQLException {
         LinksLoader ln = new LinksLoader();
         Set<String> links;
         do {
@@ -110,8 +112,8 @@ public class WebCrawler {
         try {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
             insertLinksToRobotsPages(ratesDb);
-//            fetchLinksFromRobotsTxt(ratesDb);
-//            fetchLinksFromSitmaps(ratesDb);
+            fetchLinksFromRobotsTxt(ratesDb);
+            fetchLinksFromSitmaps(ratesDb);
         } catch (Exception exc) {
             exc.printStackTrace();
         }
