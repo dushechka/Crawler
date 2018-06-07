@@ -217,7 +217,7 @@ public class RatesDatabase {
 
     public void updateLastScanDate(Integer pageId,
                                     @Nullable Timestamp lastScanDate) throws SQLException{
-        PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE siteId = ?");
+        PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE ID = ?");
         stmt.setTimestamp(1, lastScanDate);
             stmt.setInt(2, pageId);
             stmt.execute();

@@ -23,24 +23,22 @@ public class WebCrawler {
      */
     private static void insertLinksToRobotsPages(RatesDatabase ratesDb) throws SQLException {
         Set<Page> pages = selectUnscannedPages(ratesDb.getSinglePages());
-        Set<Integer> pageIds = new HashSet<>();
         for (Page page : pages) {
-            pageIds.add(page.getiD());
-        }
-        ratesDb.updateLastScanDates(pageIds, new Timestamp(System.currentTimeMillis()));
-        for (Page page : pages) {
-            try {
-                String address = LinksLoader.getSiteAddress(page.getUrl());
-                if (LinksLoader.isSiteAvailable(address)) {
-                    System.out.println("Adding robots.txt link for " + address);
-                    String robotsAddress = address + ROBOTS_TXT_APPENDIX;
-                    ratesDb.insertRowInPagesTable(robotsAddress, page.getSiteId(), null);
+            if (ratesDb.getLastScanDate(page.getUrl()) == null) {
+                ratesDb.updateLastScanDate(page.getiD(), new Timestamp(System.currentTimeMillis()));
+                try {
+                    String address = LinksLoader.getSiteAddress(page.getUrl());
+                    if (LinksLoader.isSiteAvailable(address)) {
+                        System.out.println("Adding robots.txt link for " + address);
+                        String robotsAddress = address + ROBOTS_TXT_APPENDIX;
+                        ratesDb.insertRowInPagesTable(robotsAddress, page.getSiteId(), null);
+                    }
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (SQLException | IOException exc) {
+                    exc.printStackTrace();
+                    ratesDb.updateLastScanDate(page.getiD(), null);
                 }
-            } catch (MalformedURLException | UnknownHostException e) {
-                e.printStackTrace();
-            } catch (SQLException | IOException exc) {
-                exc.printStackTrace();
-                ratesDb.updateLastScanDate(page.getiD(), null);
             }
         }
     }
@@ -112,8 +110,8 @@ public class WebCrawler {
         try {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
             insertLinksToRobotsPages(ratesDb);
-            fetchLinksFromRobotsTxt(ratesDb);
-            fetchLinksFromSitmaps(ratesDb);
+//            fetchLinksFromRobotsTxt(ratesDb);
+//            fetchLinksFromSitmaps(ratesDb);
         } catch (Exception exc) {
             exc.printStackTrace();
         }
