@@ -101,7 +101,8 @@ public class WebCrawler {
     }
 
     private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException, IOException {
-        Crawler crawler = new HtmlCrawler(new JedisIndex(JedisMaker.make()));
+        Index index = new JedisIndex(JedisMaker.make());
+        Crawler crawler = new HtmlCrawler(index);
         for (int siteId : ratesDb.getSiteIds()) {
             Set<String> pages = ratesDb.getBunchOfUnscannedPages(siteId, 1000);
             ratesDb.updateLastScanDatesByUrl(pages, new Timestamp(System.currentTimeMillis()));
@@ -116,6 +117,7 @@ public class WebCrawler {
                 exc.printStackTrace();
             }
         }
+        updatePersonsPageRanks(ratesDb, index);
     }
 
     /**
@@ -161,23 +163,25 @@ public class WebCrawler {
         }
     }
 
+    private static void updatePersonsPageRanks(RatesDatabase ratesDb, Index index) throws SQLException {
+        Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
+        for (Integer personId: keywords.keySet()) {
+            Map<String, Integer> personPageRanks = new HashMap<>();
+            for (String word : keywords.get(personId)) {
+                System.out.println("Getting info for word: " + word);
+                personPageRanks.putAll(index.getCounts(word));
+            }
+            ratesDb.insertPersonsPageRanks(personId, personPageRanks);
+        }
+    }
+
     public static void main(String[] args) {
         try {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
-            Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
-            for (Integer personId: keywords.keySet()) {
-                System.out.println("Person with id " + personId + " keywords:");
-                for (String word : keywords.get(personId)) {
-                    System.out.println(word);
-                }
-            }
-            Map<Integer, Integer> pageRanks = new HashMap<>();
-            pageRanks.put(1,3);
-            ratesDb.insertPersonsPageRanks(1,pageRanks);
 //            insertLinksToRobotsPages(ratesDb);
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
-//            parseUnscannedPages(ratesDb);
+            parseUnscannedPages(ratesDb);
 //            JedisIndex jedis = new JedisIndex(JedisMaker.make());
 //            jedis.deleteAllKeys();
 //            jedis.printIndex();

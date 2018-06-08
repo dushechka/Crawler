@@ -253,16 +253,31 @@ public class RatesDatabase {
         pst.close();
     }
 
-    public void insertPersonsPageRanks(int personId, Map<Integer, Integer> pageRanks) throws SQLException {
+    public void insertPersonsPageRanks(int personId, Map<String, Integer> pageRanks) throws SQLException {
+        Map<String, Integer> pages = mapLinksToPageIds(pageRanks.keySet());
         PreparedStatement pst = conn.prepareStatement(
                 "INSERT INTO personspagerank (PersonID,PageID,RANK) VALUES (?,?,?)");
         pst.setInt(1, personId);
-        for (Integer pageId : pageRanks.keySet()) {
-            pst.setInt(2, pageId);
-            pst.setInt(3, pageRanks.get(pageId));
+        for (String url : pages.keySet()) {
+            pst.setInt(2, pages.get(url));
+            pst.setInt(3, pageRanks.get(url));
             pst.execute();
         }
         pst.close();
+    }
+
+    private Map<String, Integer> mapLinksToPageIds(Set<String> links) throws SQLException {
+        PreparedStatement pst = conn.prepareStatement("SELECT ID FROM pages WHERE URL = ?");
+        Map<String, Integer> pages = new HashMap<>();
+        for (String url : links) {
+            pst.setString(1, url);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                pages.put(url, rs.getInt(ID_COLUMN));
+            }
+        }
+        pst.close();
+        return pages;
     }
 
     /**
