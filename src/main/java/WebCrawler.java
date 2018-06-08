@@ -177,8 +177,8 @@ public class WebCrawler {
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
 //            parseUnscannedPages(ratesDb);
-            System.out.println(new TermCounter("", PageFetcher.fetchPageParagraphs(
-                    "https://www.kinopoisk.ru/film/mirazh-na-ldu-2004-4895/")));
+            String page = "https://www.kinopoisk.ru/film/mirazh-na-ldu-2004-4895/";
+            System.out.println(new TermCounter(page, PageFetcher.fetchPageParagraphs(page)));
         } catch (Exception exc) {
             exc.printStackTrace();
         }

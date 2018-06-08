@@ -147,10 +147,11 @@ public class TermCounter implements TermContainer {
 		sb.append(LINE_SEPARATOR);
 		for (String key: keySet()) {
 			Integer count = get(key);
+			sb.append("[");
 			sb.append(key);
-			sb.append(" : ");
+			sb.append(":");
 			sb.append(count);
-			sb.append(LINE_SEPARATOR);
+			sb.append("]");
 		}
 		sb.append("Total of all counts = ");
 		sb.append(size());
