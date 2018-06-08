@@ -154,6 +154,8 @@ public class JedisIndex implements Index {
 	 */
 	@Override
 	public List<String> putTerms(TermContainer tc) {
+		System.out.println("Putting terms in index: ");
+		System.out.println(tc);
 		Transaction t = jedis.multi();
 
 		String url = tc.getLabel();

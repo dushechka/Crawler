@@ -50,6 +50,7 @@ public class HtmlCrawler implements Crawler {
 	public Set<String> crawlPages(Set<String> links) {
 		Set<String> unprocessed = new HashSet<>();
 		for (String url : links) {
+			System.out.println("Start crawling: " + url);
 		    try {
 				Elements paragraphs = PageFetcher.fetchPageParagraphs(url);
 				TermContainer tc = new TermCounter(url, paragraphs);

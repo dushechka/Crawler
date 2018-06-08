@@ -6,6 +6,8 @@ import com.allendowney.thinkdast.interfaces.Crawler;
 import com.allendowney.thinkdast.interfaces.Index;
 import com.allendowney.thinkdast.interfaces.TermContainer;
 import dbs.DBFactory;
+import dbs.redis.JedisIndex;
+import dbs.redis.JedisMaker;
 import dbs.sql.RatesDatabase;
 import dbs.sql.orm.Page;
 import org.jsoup.nodes.Element;
@@ -100,51 +102,17 @@ public class WebCrawler {
         } while (!links.isEmpty());
     }
 
-    private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException {
-        Crawler crawler = new HtmlCrawler(new Index() {
-            @Override
-            public boolean isIndexed(String url) {
-                return false;
-            }
-
-            @Override
-            public void add(String term, String url) {
-
-            }
-
-            @Override
-            public Set<String> getURLs(String term) {
-                return null;
-            }
-
-            @Override
-            public Map<String, Integer> getCounts(String term) {
-                return null;
-            }
-
-            @Override
-            public Integer getCount(String url, String term) {
-                return null;
-            }
-
-            @Override
-            public List<String> putTerms(TermContainer tc) {
-                System.out.println(tc);
-                return null;
-            }
-
-            @Override
-            public Set<String> termSet() {
-                return null;
-            }
-        });
+    private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException, IOException {
+        Crawler crawler = new HtmlCrawler(new JedisIndex(JedisMaker.make()));
         for (int siteId : ratesDb.getSiteIds()) {
             Set<String> pages = ratesDb.getBunchOfUnscannedPages(siteId, 1000);
             ratesDb.updateLastScanDatesByUrl(pages, new Timestamp(System.currentTimeMillis()));
             try {
-                for (String page : crawler.crawlPages(pages)) {
-                    System.out.println(page);
+                Set<String> unscanned = crawler.crawlPages(pages);
+                for (String page : unscanned) {
+                    System.out.println("Unscanned! Page url is: " + page);
                 }
+                ratesDb.updateLastScanDatesByUrl(unscanned, null);
             } catch (NullPointerException exc) {
                 ratesDb.updateLastScanDatesByUrl(pages, null);
                 exc.printStackTrace();
@@ -176,6 +144,9 @@ public class WebCrawler {
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
             parseUnscannedPages(ratesDb);
+//            JedisIndex jedis = new JedisIndex(JedisMaker.make());
+//            jedis.printIndex();
+//            jedis.deleteAllKeys();
         } catch (Exception exc) {
             exc.printStackTrace();
         }
