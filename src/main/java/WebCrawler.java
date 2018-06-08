@@ -16,10 +16,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.sql.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import static com.allendowney.thinkdast.LinksLoader.ROBOTS_TXT_APPENDIX;
 
 public class WebCrawler {
@@ -143,35 +141,47 @@ public class WebCrawler {
             sb.append(args[i]);
         }
         String arguments = sb.toString();
-            if (arguments.contains("-irl"))
-                insertLinksToRobotsPages(DBFactory.getRatesDb());
-            if (arguments.contains("-frl"))
-                fetchLinksFromRobotsTxt(DBFactory.getRatesDb());
-            if (arguments.contains("-fsl"))
-                fetchLinksFromSitmaps(DBFactory.getRatesDb());
-            if (arguments.contains("-pul"))
-                parseUnscannedPages(DBFactory.getRatesDb());
-            if (arguments.isEmpty()) {
-                System.out.println("Usage: java Crawler -<parameter(s)>");
-                System.out.println("List of available parameters:");
-                System.out.println("-irl - insert links to robots.txt in database for found new sites;");
-                System.out.println("-frl - fetch links from robots.txt's and save them to the database;");
-                System.out.println("-fsl - fetch links from unscanned sitemaps, found in db and save 'em;");
-                System.out.println("-pul - parse unscanned pages, found in database, and save words from them.");
-            }
+
+        if (arguments.contains("-irl"))
+            insertLinksToRobotsPages(DBFactory.getRatesDb());
+        if (arguments.contains("-frl"))
+            fetchLinksFromRobotsTxt(DBFactory.getRatesDb());
+        if (arguments.contains("-fsl"))
+            fetchLinksFromSitmaps(DBFactory.getRatesDb());
+        if (arguments.contains("-pul"))
+            parseUnscannedPages(DBFactory.getRatesDb());
+
+        if (arguments.isEmpty()) {
+            System.out.println("Usage: java Crawler -<param>");
+            System.out.println("List of available parameters:");
+            System.out.println("-irl - insert links to robots.txt in database for found new sites;");
+            System.out.println("-frl - fetch links from robots.txt's and save them to the database;");
+            System.out.println("-fsl - fetch links from unscanned sitemaps, found in db and save them;");
+            System.out.println("-pul - parse unscanned pages, found in database, and save words from them.");
+        }
     }
 
     public static void main(String[] args) {
         try {
-//            RatesDatabase ratesDb = DBFactory.getRatesDb();
+            RatesDatabase ratesDb = DBFactory.getRatesDb();
+            Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
+            for (Integer personId: keywords.keySet()) {
+                System.out.println("Person with id " + personId + " keywords:");
+                for (String word : keywords.get(personId)) {
+                    System.out.println(word);
+                }
+            }
+            Map<Integer, Integer> pageRanks = new HashMap<>();
+            pageRanks.put(1,3);
+            ratesDb.insertPersonsPageRanks(1,pageRanks);
 //            insertLinksToRobotsPages(ratesDb);
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
 //            parseUnscannedPages(ratesDb);
 //            JedisIndex jedis = new JedisIndex(JedisMaker.make());
-//            jedis.printIndex();
 //            jedis.deleteAllKeys();
-            parseInput(args);
+//            jedis.printIndex();
+//            parseInput(args);
         } catch (Exception exc) {
             exc.printStackTrace();
         }

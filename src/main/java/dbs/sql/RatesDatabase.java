@@ -6,25 +6,52 @@ import dbs.sql.orm.Page;
 
 import java.net.URL;
 import java.sql.*;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class RatesDatabase {
 
-    private static final String PAGES_ID_COLUMN = "ID";
+    private static final String ID_COLUMN = "ID";
     private static final String PAGES_URL_COLUMN = "URL";
     private static final String PAGES_SITE_ID_COLUMN = "siteID";
     private static final String PAGES_FOUND_DATE_TIME_COLUMN = "foundDateTime";
     private static final String PAGES_LAST_SCAN_DATE_COLUMN = "lastScanDate";
     private static final String COUNT_COLUMN = "COUNT(*)";
-    public static final String SITES_ID_COLUMN = "ID";
     public static final String ROBOTS_TXT_APPENDIX = "robots.txt";
     public static final String SITEMAP = "sitemap";
     public static final String XML = "xml";
+    public static final String NAME_COLUMN = "name";
     private final Connection conn;
 
     public RatesDatabase(Connection conn) {
         this.conn = conn;
+    }
+
+    private ResultSet getPersons() throws SQLException {
+        Statement stmt = conn.createStatement();
+        return stmt.executeQuery("SELECT * FROM persons");
+    }
+
+    public Map<Integer, Set<String>> getPersonsWithKeywords() throws SQLException {
+        Map<Integer, Set<String>> persons = new HashMap<>();
+        PreparedStatement pst = conn.prepareStatement("SELECT name FROM keywords WHERE personID = ?");
+        ResultSet rs = getPersons();
+        while (rs.next()) {
+            int personId = rs.getInt(ID_COLUMN);
+            pst.setInt(1, personId);
+            ResultSet rst = pst.executeQuery();
+            Set<String> keywords = new HashSet<>();
+            keywords.add(rs.getString(NAME_COLUMN));
+            while (rst.next()) {
+                keywords.add(rst.getString(NAME_COLUMN));
+            }
+            persons.put(personId, keywords);
+        }
+        rs.close();
+        pst.close();
+        return persons;
     }
 
     /**
@@ -114,7 +141,7 @@ public class RatesDatabase {
         ResultSet rs = getPagesWithCounts();
         while (rs.next()) {
             if (rs.getInt(COUNT_COLUMN) == 1) {
-                    pages.add(new ModifiablePage(rs.getInt(PAGES_ID_COLUMN),
+                    pages.add(new ModifiablePage(rs.getInt(ID_COLUMN),
                             rs.getString(PAGES_URL_COLUMN),
                             rs.getInt(PAGES_SITE_ID_COLUMN),
                             rs.getTimestamp(PAGES_FOUND_DATE_TIME_COLUMN),
@@ -130,7 +157,7 @@ public class RatesDatabase {
         ResultSet rs = getUnscannedPagesWithCounts();
         while (rs.next()) {
             if (rs.getInt(COUNT_COLUMN) == 1) {
-                pages.add(new ModifiablePage(rs.getInt(PAGES_ID_COLUMN),
+                pages.add(new ModifiablePage(rs.getInt(ID_COLUMN),
                         rs.getString(PAGES_URL_COLUMN),
                         rs.getInt(PAGES_SITE_ID_COLUMN),
                         rs.getTimestamp(PAGES_FOUND_DATE_TIME_COLUMN),
@@ -226,6 +253,18 @@ public class RatesDatabase {
         pst.close();
     }
 
+    public void insertPersonsPageRanks(int personId, Map<Integer, Integer> pageRanks) throws SQLException {
+        PreparedStatement pst = conn.prepareStatement(
+                "INSERT INTO personspagerank (PersonID,PageID,RANK) VALUES (?,?,?)");
+        pst.setInt(1, personId);
+        for (Integer pageId : pageRanks.keySet()) {
+            pst.setInt(2, pageId);
+            pst.setInt(3, pageRanks.get(pageId));
+            pst.execute();
+        }
+        pst.close();
+    }
+
     /**
      * Gets lastScanDate timestamp from pages table
      * in a row, where page with <code>url</code>
@@ -297,7 +336,7 @@ public class RatesDatabase {
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery("SELECT ID FROM sites");
         while (rs.next()) {
-            siteIds.add(rs.getInt(SITES_ID_COLUMN));
+            siteIds.add(rs.getInt(ID_COLUMN));
         }
         stmt.close();
         return siteIds;
