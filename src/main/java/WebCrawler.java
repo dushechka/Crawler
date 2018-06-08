@@ -142,7 +142,6 @@ public class WebCrawler {
             Set<String> pages = ratesDb.getBunchOfUnscannedPages(siteId, 1000);
             ratesDb.updateLastScanDatesByUrl(pages, new Timestamp(System.currentTimeMillis()));
             try {
-                System.out.println("Unscanned pages: ");
                 for (String page : crawler.crawlPages(pages)) {
                     System.out.println(page);
                 }
@@ -176,9 +175,7 @@ public class WebCrawler {
 //            insertLinksToRobotsPages(ratesDb);
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
-//            parseUnscannedPages(ratesDb);
-            String page = "https://www.kinopoisk.ru/film/mirazh-na-ldu-2004-4895/";
-            System.out.println(new TermCounter(page, PageFetcher.fetchPageParagraphs(page)));
+            parseUnscannedPages(ratesDb);
         } catch (Exception exc) {
             exc.printStackTrace();
         }

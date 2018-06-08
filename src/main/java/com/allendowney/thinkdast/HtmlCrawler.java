@@ -52,12 +52,11 @@ public class HtmlCrawler implements Crawler {
 		for (String url : links) {
 		    try {
 				Elements paragraphs = PageFetcher.fetchPageParagraphs(url);
-				System.out.println("Crawling " + url);
 				TermContainer tc = new TermCounter(url, paragraphs);
 				index.putTerms(tc);
-				unprocessed.add(url);
 			} catch (IOException exc) {
 		    	exc.printStackTrace();
+		    	unprocessed.add(url);
 			}
 		}
 		return unprocessed;
