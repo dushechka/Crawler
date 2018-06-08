@@ -129,7 +129,7 @@ public class WebCrawler {
      * @throws SQLException
      */
     private static void saveLinksToDb(String url, Set<String> links,
-                                         RatesDatabase db) throws MalformedURLException, SQLException {
+                                         RatesDatabase db) throws SQLException {
         Integer siteId = db.getSiteIdByLink(url);
         System.out.println("Adding links to DB from " + url);
         if (siteId != null) {
@@ -137,16 +137,41 @@ public class WebCrawler {
         }
     }
 
+    private static void parseInput(String[] args) throws SQLException, IOException {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < args.length; i++) {
+            sb.append(args[i]);
+        }
+        String arguments = sb.toString();
+            if (arguments.contains("-irl"))
+                insertLinksToRobotsPages(DBFactory.getRatesDb());
+            if (arguments.contains("-frl"))
+                fetchLinksFromRobotsTxt(DBFactory.getRatesDb());
+            if (arguments.contains("-fsl"))
+                fetchLinksFromSitmaps(DBFactory.getRatesDb());
+            if (arguments.contains("-pul"))
+                parseUnscannedPages(DBFactory.getRatesDb());
+            if (arguments.isEmpty()) {
+                System.out.println("Usage: java Crawler -<parameter(s)>");
+                System.out.println("List of available parameters:");
+                System.out.println("-irl - insert links to robots.txt in database for found new sites;");
+                System.out.println("-frl - fetch links from robots.txt's and save them to the database;");
+                System.out.println("-fsl - fetch links from unscanned sitemaps, found in db and save 'em;");
+                System.out.println("-pul - parse unscanned pages, found in database, and save words from them.");
+            }
+    }
+
     public static void main(String[] args) {
         try {
-            RatesDatabase ratesDb = DBFactory.getRatesDb();
+//            RatesDatabase ratesDb = DBFactory.getRatesDb();
 //            insertLinksToRobotsPages(ratesDb);
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
-            parseUnscannedPages(ratesDb);
+//            parseUnscannedPages(ratesDb);
 //            JedisIndex jedis = new JedisIndex(JedisMaker.make());
 //            jedis.printIndex();
 //            jedis.deleteAllKeys();
+            parseInput(args);
         } catch (Exception exc) {
             exc.printStackTrace();
         }
