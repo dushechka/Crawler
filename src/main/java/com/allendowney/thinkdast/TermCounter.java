@@ -3,6 +3,8 @@ package com.allendowney.thinkdast;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.allendowney.thinkdast.interfaces.TermContainer;
 import org.jsoup.nodes.Node;
@@ -82,11 +84,15 @@ public class TermCounter implements TermContainer {
 		// replace punctuation with spaces, convert to lower case, and split on whitespace
 		String[] array = text.replaceAll("\\pP", " ").
 				              toLowerCase().
-				              split("\\s+");
-		
+				              split("\\pZ+");
+
+		Pattern WORD = Pattern.compile("\\pL{3,}");
 		for (int i=0; i<array.length; i++) {
 			String term = array[i];
-			incrementTermCount(term);
+			Matcher m = WORD.matcher(term);
+			if (m.find()) {
+				incrementTermCount(term);
+			}
 		}
 	}
 
@@ -139,13 +145,13 @@ public class TermCounter implements TermContainer {
 		sb.append("Termcounter for page: ");
 		sb.append(label);
 		sb.append(LINE_SEPARATOR);
-//		for (String key: keySet()) {
-//			Integer count = get(key);
-//			sb.append(key);
-//			sb.append(", ");
-//			sb.append(count);
-//			sb.append(LINE_SEPARATOR);
-//		}
+		for (String key: keySet()) {
+			Integer count = get(key);
+			sb.append(key);
+			sb.append(" : ");
+			sb.append(count);
+			sb.append(LINE_SEPARATOR);
+		}
 		sb.append("Total of all counts = ");
 		sb.append(size());
 		sb.append(LINE_SEPARATOR);

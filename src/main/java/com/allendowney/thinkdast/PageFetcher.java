@@ -1,16 +1,14 @@
 package com.allendowney.thinkdast;
 
-import java.io.IOException;
-
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import java.io.IOException;
 
 
 public class PageFetcher {
-	private static final String MW_CONTENT_TEXT = "mw-content-text";
 	private static final String PARAGRAPH = "p";
 	private static final String SITEMAP_TAG = "sitemap";
 	private static final String URL_TAG = "url";
@@ -31,10 +29,7 @@ public class PageFetcher {
 		Connection conn = Jsoup.connect(url);
 		Document doc = conn.get();
 
-		// select the content text and pull out the paragraphs.
-		Element content = doc.getElementById(MW_CONTENT_TEXT);
-
-		return content.select(PARAGRAPH);
+		return doc.select(PARAGRAPH);
 	}
 
 	public static Elements fetchSitemapElements(String url) throws IOException {

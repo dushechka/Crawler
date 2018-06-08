@@ -1,11 +1,14 @@
 import com.allendowney.thinkdast.HtmlCrawler;
 import com.allendowney.thinkdast.LinksLoader;
+import com.allendowney.thinkdast.PageFetcher;
+import com.allendowney.thinkdast.TermCounter;
 import com.allendowney.thinkdast.interfaces.Crawler;
 import com.allendowney.thinkdast.interfaces.Index;
 import com.allendowney.thinkdast.interfaces.TermContainer;
 import dbs.DBFactory;
 import dbs.sql.RatesDatabase;
 import dbs.sql.orm.Page;
+import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -173,7 +176,9 @@ public class WebCrawler {
 //            insertLinksToRobotsPages(ratesDb);
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
-            parseUnscannedPages(ratesDb);
+//            parseUnscannedPages(ratesDb);
+            System.out.println(new TermCounter("", PageFetcher.fetchPageParagraphs(
+                    "https://www.kinopoisk.ru/film/mirazh-na-ldu-2004-4895/")));
         } catch (Exception exc) {
             exc.printStackTrace();
         }
