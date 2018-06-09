@@ -17,6 +17,7 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.sql.*;
 import java.util.*;
+import java.util.function.BiFunction;
 
 import static com.allendowney.thinkdast.LinksLoader.ROBOTS_TXT_APPENDIX;
 
@@ -144,14 +145,23 @@ public class WebCrawler {
         for (Integer personId: keywords.keySet()) {
             Map<String, Integer> personPageRanks = new HashMap<>();
             for (String word : keywords.get(personId)) {
-                System.out.println("Getting info for word: " + word);
-//                personPageRanks.putAll(index.getCounts(word));
+                System.out.println("Getting counts for word: " + word);
                 Map<String, Integer> counts = index.getCounts(word.toLowerCase());
-                for (String url : counts.keySet()) {
-                    System.out.println(url + " : " + counts.get(url));
-                }
+                System.out.println("Counts: " + counts);
+                putOrUpdate(index.getCounts(word.toLowerCase()), personPageRanks);
+            }
+            for (String url : personPageRanks.keySet()) {
+                System.out.println(url + " : " + personPageRanks.get(url));
             }
 //            ratesDb.insertPersonsPageRanks(personId, personPageRanks);
+        }
+    }
+
+    private static void putOrUpdate(Map<String, Integer> source, Map<String, Integer> target) {
+        for (Map.Entry<String, Integer> entry : source.entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+            target.merge(key, value, (first, second) -> first + second);
         }
     }
 
