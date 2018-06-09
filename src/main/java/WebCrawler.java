@@ -119,7 +119,7 @@ public class WebCrawler {
                 ratesDb.updateLastScanDatesByUrl(links, null);
                 exc.printStackTrace();
             }
-            updatePersonsPageRanks(ratesDb, index);
+            updatePersonsPageRanks(links, ratesDb, index);
         }
     }
 
@@ -140,8 +140,26 @@ public class WebCrawler {
         }
     }
 
-    private static void updatePersonsPageRanks(RatesDatabase ratesDb, Index index) throws SQLException {
+
+    private static void updatePersonsPageRanks(Set<String> links,
+                                               RatesDatabase ratesDb, Index index) throws SQLException {
+        Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(ratesDb, index);
+        for (Integer personId : personPageRanks.keySet()) {
+            Map<String, Integer> ranks = personPageRanks.get(personId);
+            for (Map.Entry<String, Integer> rank : ranks.entrySet()) {
+                String link = rank.getKey();
+                if (!links.contains(link)) {
+                    ranks.remove(link);
+                }
+            }
+            ratesDb.insertPersonsPageRanks(personId, ranks);
+        }
+    }
+
+    private static Map<Integer, Map<String, Integer>> getPageRanksFromIndex(
+                RatesDatabase ratesDb, Index index) throws SQLException {
         Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
+        Map<Integer, Map<String, Integer>> pageRanks = new HashMap<>();
         for (Integer personId: keywords.keySet()) {
             Map<String, Integer> personPageRanks = new HashMap<>();
             for (String word : keywords.get(personId)) {
@@ -153,8 +171,9 @@ public class WebCrawler {
             for (String url : personPageRanks.keySet()) {
                 System.out.println(url + " : " + personPageRanks.get(url));
             }
-//            ratesDb.insertPersonsPageRanks(personId, personPageRanks);
+            pageRanks.put(personId, personPageRanks);
         }
+        return pageRanks;
     }
 
     private static void putOrUpdate(Map<String, Integer> source, Map<String, Integer> target) {
@@ -197,9 +216,8 @@ public class WebCrawler {
 //            insertLinksToRobotsPages(ratesDb);
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
-//            parseUnscannedPages(ratesDb);
-            JedisIndex jedis = new JedisIndex(JedisMaker.make());
-            updatePersonsPageRanks(ratesDb, jedis);
+            parseUnscannedPages(ratesDb);
+//            JedisIndex jedis = new JedisIndex(JedisMaker.make());
 //            jedis.deleteAllKeys();
 //            jedis.printIndex();
 //            parseInput(args);
