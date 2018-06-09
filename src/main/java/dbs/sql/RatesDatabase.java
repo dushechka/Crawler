@@ -84,7 +84,7 @@ public class RatesDatabase {
      * @return unscanned leaf pages
      * @throws SQLException
      */
-    public Set<String> getBunchOfUnscannedPages(int siteId, int limit) throws SQLException {
+    public Set<String> getBunchOfUnscannedLinks(int siteId, int limit) throws SQLException {
         Set<String> links = new HashSet<>();
         PreparedStatement pst = conn.prepareStatement(
                 "SELECT URL FROM pages WHERE siteID = ? AND lastScanDate IS NULL LIMIT ?");
@@ -98,6 +98,32 @@ public class RatesDatabase {
                 links.add(link);
             }
         }
+        pst.close();
+        return links;
+    }
+
+    public Set<Page> getBunchOfUnscannedPages(int siteId, int limit) throws SQLException {
+        Set<Page> links = new HashSet<>();
+        PreparedStatement pst = conn.prepareStatement(
+                "SELECT * FROM pages WHERE siteID = ? AND lastScanDate IS NULL LIMIT ?");
+        pst.setInt(1, siteId);
+        pst.setInt(2, limit);
+        ResultSet rs = pst.executeQuery();
+
+        while (rs.next()) {
+            String url = rs.getString(PAGES_URL_COLUMN);
+            if (!(url.contains(SITEMAP) && url.contains(XML))
+                    && !(url.contains(ROBOTS_TXT_APPENDIX))) {
+                Page page = new ModifiablePage(
+                        rs.getInt(ID_COLUMN),
+                        url,
+                        rs.getInt(PAGES_SITE_ID_COLUMN),
+                        rs.getTimestamp(PAGES_FOUND_DATE_TIME_COLUMN),
+                        rs.getTimestamp(PAGES_LAST_SCAN_DATE_COLUMN));
+                links.add(page);
+            }
+        }
+
         pst.close();
         return links;
     }

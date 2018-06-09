@@ -64,4 +64,11 @@ public interface Index {
      * @return
      */
     Set<String> termSet();
+
+    /**
+     * Prints the contents of the index.
+     *
+     * Should be used for development and testing, not production.
+     */
+    void printIndex();
 }
