@@ -92,22 +92,6 @@ public class JedisIndex implements Index {
 	 */
 	@Override
 	public Map<String, Integer> getCounts(String term) {
-		Map<String, Integer> map = new HashMap<>();
-		Set<String> urls = getURLs(term);
-		for (String url: urls) {
-			Integer count = getCount(url, term);
-			map.put(url, count);
-		}
-		return map;
-	}
-
-	/**
-	 * Looks up a term and returns a map from URL to count.
-	 *
-	 * @param term
-	 * @return Map from URL to count.
-	 */
-	private Map<String, Integer> getCountsFaster(String term) {
 		// convert the set of strings to a list so we get the
 		// same traversal order every time
 		List<String> urls = new ArrayList<>();
@@ -129,8 +113,7 @@ public class JedisIndex implements Index {
 			Integer count = new Integer((String) res.get(i++));
 			map.put(url, count);
 		}
-		return map;
-	}
+		return map;	}
 
 	/**
 	 * Returns the number of times the given term appears at the given URL.

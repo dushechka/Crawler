@@ -105,21 +105,24 @@ public class WebCrawler {
         Index index = new JedisIndex(JedisMaker.make());
         Crawler crawler = new HtmlCrawler(index);
         for (int siteId : ratesDb.getSiteIds()) {
-            Set<String> links = ratesDb.getBunchOfUnscannedLinks(siteId, 1000);
-            ratesDb.updateLastScanDatesByUrl(links, new Timestamp(System.currentTimeMillis()));
+            Set<String> links;
+            do {
+                links = ratesDb.getBunchOfUnscannedLinks(siteId, 1000);
+                ratesDb.updateLastScanDatesByUrl(links, new Timestamp(System.currentTimeMillis()));
                 System.out.println("Preparing to scan pages");
-            try {
-                Set<String> unscanned = crawler.crawlPages(links);
-                for (String lnk : unscanned) {
-                    System.out.println("Unscanned! Page url is: " + lnk);
+                try {
+                    Set<String> unscanned = crawler.crawlPages(links);
+                    for (String lnk : unscanned) {
+                        System.out.println("Unscanned! Page url is: " + lnk);
+                    }
+                    links.removeAll(unscanned);
+                    ratesDb.updateLastScanDatesByUrl(unscanned, null);
+                } catch (NullPointerException exc) {
+                    ratesDb.updateLastScanDatesByUrl(links, null);
+                    exc.printStackTrace();
                 }
-                links.removeAll(unscanned);
-                ratesDb.updateLastScanDatesByUrl(unscanned, null);
-            } catch (NullPointerException exc) {
-                ratesDb.updateLastScanDatesByUrl(links, null);
-                exc.printStackTrace();
-            }
-            updatePersonsPageRanks(links, ratesDb, index);
+                updatePersonsPageRanks(links, ratesDb, index);
+            } while (!links.isEmpty());
         }
     }
 
@@ -140,6 +143,13 @@ public class WebCrawler {
         }
     }
 
+    private static void updateAllPersonsPageRanks(RatesDatabase ratesDb, Index index) throws SQLException {
+        Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(ratesDb, index);
+        for (Integer personId : personPageRanks.keySet()) {
+            Map<String, Integer> ranks = personPageRanks.get(personId);
+            ratesDb.insertPersonsPageRanks(personId, ranks);
+        }
+    }
 
     private static void updatePersonsPageRanks(Set<String> links,
                                                RatesDatabase ratesDb, Index index) throws SQLException {
@@ -217,10 +227,11 @@ public class WebCrawler {
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
             parseUnscannedPages(ratesDb);
-//            JedisIndex jedis = new JedisIndex(JedisMaker.make());
-//            jedis.deleteAllKeys();
-//            jedis.printIndex();
+//            JedisIndex index = new JedisIndex(JedisMaker.make());
+//            index.deleteAllKeys();
+//            index.printIndex();
 //            parseInput(args);
+//            updateAllPersonsPageRanks(ratesDb, index);
         } catch (Exception exc) {
             exc.printStackTrace();
         }
