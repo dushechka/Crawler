@@ -56,6 +56,7 @@ public class HtmlCrawler implements Crawler {
 				Elements paragraphs = PageFetcher.fetchPageParagraphs(url);
 				TermContainer tc = new TermCounter(url, paragraphs);
 				index.putTerms(tc);
+				errCounter = 0;
 			} catch (Exception exc) {
 		    	unprocessed.add(url);
 		    	errCounter++;

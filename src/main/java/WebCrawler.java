@@ -11,6 +11,7 @@ import dbs.redis.JedisMaker;
 import dbs.sql.RatesDatabase;
 import dbs.sql.orm.Page;
 import org.jsoup.nodes.Element;
+import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -102,7 +103,7 @@ public class WebCrawler {
     }
 
     private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException, IOException {
-        Index index = new JedisIndex(JedisMaker.make());
+        Index index = DBFactory.getIndex();
         Crawler crawler = new HtmlCrawler(index);
         int errCounter = 0;
         for (int siteId : ratesDb.getSiteIds()) {
@@ -118,6 +119,7 @@ public class WebCrawler {
                     }
                     links.removeAll(unscanned);
                     ratesDb.updateLastScanDatesByUrl(unscanned, null);
+                    errCounter = 0;
                 } catch (IOException exc) {
                     errCounter++;
                     ratesDb.updateLastScanDatesByUrl(links, null);
