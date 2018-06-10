@@ -220,6 +220,13 @@ public class WebCrawler {
             fetchLinksFromSitmaps(DBFactory.getRatesDb());
         if (arguments.contains("-pul"))
             parseUnscannedPages(DBFactory.getRatesDb());
+        if (arguments.contains("-all")) {
+            RatesDatabase rdb = DBFactory.getRatesDb();
+            insertLinksToRobotsPages(rdb);
+            fetchLinksFromRobotsTxt(rdb);
+            fetchLinksFromSitmaps(rdb);
+            parseUnscannedPages(rdb);
+        }
 
         if (arguments.isEmpty()) {
             System.out.println("Usage: java Crawler -<param>");
@@ -227,7 +234,8 @@ public class WebCrawler {
             System.out.println("-irl - insert links to robots.txt in database for found new sites;");
             System.out.println("-frl - fetch links from robots.txt's and save them to the database;");
             System.out.println("-fsl - fetch links from unscanned sitemaps, found in db and save them;");
-            System.out.println("-pul - parse unscanned pages, found in database, and save words from them.");
+            System.out.println("-pul - parse unscanned pages, found in database, and save words from them;");
+            System.out.println("-all - run whole cycle of crawling.");
         }
     }
 
@@ -237,11 +245,11 @@ public class WebCrawler {
 //            insertLinksToRobotsPages(ratesDb);
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
-            parseUnscannedPages(ratesDb);
+//            parseUnscannedPages(ratesDb);
 //            JedisIndex index = new JedisIndex(JedisMaker.make());
 //            index.deleteAllKeys();
 //            index.printIndex();
-//            parseInput(args);
+            parseInput(args);
 //            updateAllPersonsPageRanks(ratesDb, index);
         } catch (Exception exc) {
             exc.printStackTrace();
