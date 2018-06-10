@@ -104,6 +104,7 @@ public class WebCrawler {
     private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException, IOException {
         Index index = new JedisIndex(JedisMaker.make());
         Crawler crawler = new HtmlCrawler(index);
+        int errCounter = 0;
         for (int siteId : ratesDb.getSiteIds()) {
             Set<String> links;
             do {
@@ -117,9 +118,13 @@ public class WebCrawler {
                     }
                     links.removeAll(unscanned);
                     ratesDb.updateLastScanDatesByUrl(unscanned, null);
-                } catch (NullPointerException exc) {
+                } catch (IOException exc) {
+                    errCounter++;
                     ratesDb.updateLastScanDatesByUrl(links, null);
                     exc.printStackTrace();
+                    if (errCounter > 7 ) {
+                        throw new IOException(exc);
+                    }
                 }
                 updatePersonsPageRanks(links, ratesDb, index);
             } while (!links.isEmpty());
@@ -153,17 +158,21 @@ public class WebCrawler {
 
     private static void updatePersonsPageRanks(Set<String> links,
                                                RatesDatabase ratesDb, Index index) throws SQLException {
-        Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(ratesDb, index);
-        for (Integer personId : personPageRanks.keySet()) {
-            Map<String, Integer> ranks = personPageRanks.get(personId);
-            for (Map.Entry<String, Integer> rank : ranks.entrySet()) {
-                String link = rank.getKey();
-                if (!links.contains(link)) {
-                    ranks.remove(link);
+            Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(ratesDb, index);
+            Set<String> absentLinks = new HashSet<>();
+            for (Integer personId : personPageRanks.keySet()) {
+                Map<String, Integer> ranks = personPageRanks.get(personId);
+                for (Map.Entry<String, Integer> rank : ranks.entrySet()) {
+                    String link = rank.getKey();
+                    if (!links.contains(link)) {
+                        absentLinks.add(link);
+                    }
                 }
+                for (String absLnk : absentLinks) {
+                    ranks.remove(absLnk);
+                }
+                ratesDb.insertPersonsPageRanks(personId, ranks);
             }
-            ratesDb.insertPersonsPageRanks(personId, ranks);
-        }
     }
 
     private static Map<Integer, Map<String, Integer>> getPageRanksFromIndex(

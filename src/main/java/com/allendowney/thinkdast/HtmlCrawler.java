@@ -47,17 +47,22 @@ public class HtmlCrawler implements Crawler {
 	}
 
 	@Override
-	public Set<String> crawlPages(Set<String> links) {
+	public Set<String> crawlPages(Set<String> links) throws IOException {
 		Set<String> unprocessed = new HashSet<>();
+		int errCounter = 0;
 		for (String url : links) {
 			System.out.println("Start crawling: " + url);
 		    try {
 				Elements paragraphs = PageFetcher.fetchPageParagraphs(url);
 				TermContainer tc = new TermCounter(url, paragraphs);
 				index.putTerms(tc);
-			} catch (IOException exc) {
-		    	exc.printStackTrace();
+			} catch (Exception exc) {
 		    	unprocessed.add(url);
+		    	errCounter++;
+		    	exc.printStackTrace();
+		    	if (errCounter > 7) {
+		    		throw new IOException(exc);
+				}
 			}
 		}
 		return unprocessed;

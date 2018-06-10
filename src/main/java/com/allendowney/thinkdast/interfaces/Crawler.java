@@ -16,7 +16,7 @@ public interface Crawler {
      * @param links
      * @return pages, that was unable to index
      */
-    Set<String> crawlPages(Set<String> links);
+    Set<String> crawlPages(Set<String> links) throws IOException;
 
     /**
      * Indexes given url.
