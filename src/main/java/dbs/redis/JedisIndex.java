@@ -1,17 +1,11 @@
 package dbs.redis;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-
 import com.allendowney.thinkdast.interfaces.Index;
 import com.allendowney.thinkdast.interfaces.TermContainer;
-
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;
+
+import java.util.*;
 
 /**
  * Represents a Redis-backed web search index.

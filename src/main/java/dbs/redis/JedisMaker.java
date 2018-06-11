@@ -1,17 +1,12 @@
 package dbs.redis;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import redis.clients.jedis.Jedis;
+
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
-
-import org.apache.commons.lang3.ObjectUtils;
-import redis.clients.jedis.Jedis;
 
 
 public class JedisMaker {

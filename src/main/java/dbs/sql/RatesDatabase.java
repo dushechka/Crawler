@@ -1,10 +1,9 @@
 package dbs.sql;
 
-import com.sun.istack.internal.Nullable;
 import dbs.sql.orm.ModifiablePage;
 import dbs.sql.orm.Page;
+import org.jetbrains.annotations.Nullable;
 
-import java.net.URL;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,10 +18,10 @@ public class RatesDatabase {
     private static final String PAGES_FOUND_DATE_TIME_COLUMN = "foundDateTime";
     private static final String PAGES_LAST_SCAN_DATE_COLUMN = "lastScanDate";
     private static final String COUNT_COLUMN = "COUNT(*)";
-    public static final String ROBOTS_TXT_APPENDIX = "robots.txt";
-    public static final String SITEMAP = "sitemap";
-    public static final String XML = "xml";
-    public static final String NAME_COLUMN = "name";
+    private static final String ROBOTS_TXT_APPENDIX = "robots.txt";
+    private static final String SITEMAP = "sitemap";
+    private static final String XML = "xml";
+    private static final String NAME_COLUMN = "name";
     private final Connection conn;
 
     public RatesDatabase(Connection conn) {
@@ -134,7 +133,8 @@ public class RatesDatabase {
      * @return Unscanned links to robots.txt files.
      * @throws SQLException
      */
-    public @Nullable Set<String> getUnscannedRobotsTxtLinks() throws SQLException {
+    public @Nullable
+    Set<String> getUnscannedRobotsTxtLinks() throws SQLException {
         Set<String> links = new HashSet<>();
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(

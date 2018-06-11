@@ -1,24 +1,19 @@
 import com.allendowney.thinkdast.HtmlCrawler;
 import com.allendowney.thinkdast.LinksLoader;
-import com.allendowney.thinkdast.PageFetcher;
-import com.allendowney.thinkdast.TermCounter;
 import com.allendowney.thinkdast.interfaces.Crawler;
 import com.allendowney.thinkdast.interfaces.Index;
-import com.allendowney.thinkdast.interfaces.TermContainer;
 import dbs.DBFactory;
-import dbs.redis.JedisIndex;
-import dbs.redis.JedisMaker;
 import dbs.sql.RatesDatabase;
 import dbs.sql.orm.Page;
-import org.jsoup.nodes.Element;
-import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.UnknownHostException;
-import java.sql.*;
-import java.util.*;
-import java.util.function.BiFunction;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static com.allendowney.thinkdast.LinksLoader.ROBOTS_TXT_APPENDIX;
 
