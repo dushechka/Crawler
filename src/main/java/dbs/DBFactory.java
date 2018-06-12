@@ -10,11 +10,13 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBFactory {
-    private static final String DB_ADRESS = "jdbc:mysql://localhost:3306/searchandratewords";
-    private static final String USER_NAME = "crawler";
-    private static final String PASSWORD = "123";
-    private static RatesDatabase ratesDatabase = null;
-    private static Index index = null;
+    public static final String DB_ADRESS = "jdbc:mysql://localhost:3306/searchandratewords";
+    public static final String USER_NAME = "crawler";
+    public static final String PASSWORD = "123";
+    public static final String REDIS_HOST = "192.168.56.101";
+    public static final int REDIS_PORT = 6379;
+    public static int REDIS_TIMEOUT = 10000;
+    public static RatesDatabase ratesDatabase = null;
 
     public static RatesDatabase getRatesDb() throws SQLException {
             if (ratesDatabase == null) {
@@ -25,9 +27,6 @@ public class DBFactory {
     }
 
     public static Index getIndex() {
-        if (index == null) {
-            index = new JedisIndex(new Jedis("192.168.56.101", 6379));
-        }
-        return index;
+        return new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT, REDIS_TIMEOUT));
     }
 }

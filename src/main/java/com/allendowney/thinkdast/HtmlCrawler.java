@@ -23,22 +23,13 @@ public class HtmlCrawler implements Crawler {
 	// queue of URLs to be indexed
 	private Queue<String> queue = new LinkedList<>();
 
-	/**
-	 * Constructor.
-	 *
-	 * @param index
-	 */
-	public HtmlCrawler(Index index) {
-		this.index = index;
-	}
-
 	@Override
 	public int queueSize() {
 		return queue.size();
 	}
 
 	@Override
-	public String crawlPage(String url) throws IOException {
+	public String crawlPage(String url, Index index) throws IOException {
 		Elements paragraphs = PageFetcher.fetchPageParagraphs(url);
 		System.out.println("Crawling " + url);
 		TermContainer tc = new TermCounter(url, paragraphs);
@@ -47,7 +38,7 @@ public class HtmlCrawler implements Crawler {
 	}
 
 	@Override
-	public Set<String> crawlPages(Set<String> links) throws IOException {
+	public Set<String> crawlPages(Set<String> links, Index index) throws IOException {
 		Set<String> unprocessed = new HashSet<>();
 		int errCounter = 0;
 		for (String url : links) {

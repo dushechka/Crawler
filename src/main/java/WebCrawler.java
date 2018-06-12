@@ -19,6 +19,8 @@ import static com.allendowney.thinkdast.LinksLoader.ROBOTS_TXT_APPENDIX;
 
 public class WebCrawler {
 
+    private static int MAX_PAGES_PER_SCAN_CYCLE = 100;
+
     /**
      * Inserts links to the robots.txt file
      * for sites, that have only one link in DB.
@@ -98,17 +100,18 @@ public class WebCrawler {
     }
 
     private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException, IOException {
-        Index index = DBFactory.getIndex();
-        Crawler crawler = new HtmlCrawler(index);
+        System.out.println("Maximum pages to scan per cycle: " + MAX_PAGES_PER_SCAN_CYCLE);
+        System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
+        Crawler crawler = new HtmlCrawler();
         int errCounter = 0;
         for (int siteId : ratesDb.getSiteIds()) {
             Set<String> links;
             do {
-                links = ratesDb.getBunchOfUnscannedLinks(siteId, 1000);
+                links = ratesDb.getBunchOfUnscannedLinks(siteId, MAX_PAGES_PER_SCAN_CYCLE);
                 ratesDb.updateLastScanDatesByUrl(links, new Timestamp(System.currentTimeMillis()));
                 System.out.println("Preparing to scan pages");
                 try {
-                    Set<String> unscanned = crawler.crawlPages(links);
+                    Set<String> unscanned = crawler.crawlPages(links, DBFactory.getIndex());
                     for (String lnk : unscanned) {
                         System.out.println("Unscanned! Page url is: " + lnk);
                     }
@@ -123,7 +126,7 @@ public class WebCrawler {
                         throw new IOException(exc);
                     }
                 }
-                updatePersonsPageRanks(links, ratesDb, index);
+                updatePersonsPageRanks(links, ratesDb, DBFactory.getIndex());
             } while (!links.isEmpty());
         }
     }
@@ -201,37 +204,57 @@ public class WebCrawler {
     }
 
     private static void parseInput(String[] args) throws SQLException, IOException {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < args.length; i++) {
-            sb.append(args[i]);
-        }
-        String arguments = sb.toString();
-
-        if (arguments.contains("-irl"))
-            insertLinksToRobotsPages(DBFactory.getRatesDb());
-        if (arguments.contains("-frl"))
-            fetchLinksFromRobotsTxt(DBFactory.getRatesDb());
-        if (arguments.contains("-fsl"))
-            fetchLinksFromSitmaps(DBFactory.getRatesDb());
-        if (arguments.contains("-pul"))
-            parseUnscannedPages(DBFactory.getRatesDb());
-        if (arguments.contains("-all")) {
-            RatesDatabase rdb = DBFactory.getRatesDb();
-            insertLinksToRobotsPages(rdb);
-            fetchLinksFromRobotsTxt(rdb);
-            fetchLinksFromSitmaps(rdb);
-            parseUnscannedPages(rdb);
-        }
-
-        if (arguments.isEmpty()) {
+        if (args.length == 0) {
             System.out.println("Usage: java Crawler -<param>");
             System.out.println("List of available parameters:");
             System.out.println("-irl - insert links to robots.txt in database for found new sites;");
             System.out.println("-frl - fetch links from robots.txt's and save them to the database;");
             System.out.println("-fsl - fetch links from unscanned sitemaps, found in db and save them;");
             System.out.println("-pul - parse unscanned pages, found in database, and save words from them;");
-            System.out.println("-all - run whole cycle of crawling.");
+            System.out.println("-all - run whole cycle of crawling;");
+            System.out.println("-rtm <number> - set redis time-out;");
+            System.out.println("-lpc <number> - set number of links to process at a time.");
+        } else {
+
+            for (int i = 0; i < args.length; i++) {
+                if (args[i].contains("-rtm")) {
+                    try {
+                        DBFactory.REDIS_TIMEOUT = Integer.parseInt(args[i + 1]);
+                    } catch (NumberFormatException exc) {
+                        System.out.println("Wrong number format for -rtm parameter!");
+                    }
+                }
+                if (args[i].contains("-lpc")) {
+                    try {
+                        MAX_PAGES_PER_SCAN_CYCLE = Integer.parseInt(args[i + 1]);
+                    } catch (NumberFormatException exc) {
+                        System.out.println("Wrong number format for -lpc parameter!");
+                    }
+                }
+            }
+
+            for (String arg : args) {
+                if (arg.contains("-irl"))
+                    insertLinksToRobotsPages(DBFactory.getRatesDb());
+                if (arg.contains("-frl"))
+                    fetchLinksFromRobotsTxt(DBFactory.getRatesDb());
+                if (arg.contains("-fsl"))
+                    fetchLinksFromSitmaps(DBFactory.getRatesDb());
+                if (arg.contains("-pul"))
+                    parseUnscannedPages(DBFactory.getRatesDb());
+                if (arg.contains("-all")) {
+                    runWholeProgramCycle();
+                }
+            }
         }
+    }
+
+    private static void runWholeProgramCycle() throws SQLException, IOException {
+        RatesDatabase rdb = DBFactory.getRatesDb();
+        insertLinksToRobotsPages(rdb);
+        fetchLinksFromRobotsTxt(rdb);
+        fetchLinksFromSitmaps(rdb);
+        parseUnscannedPages(rdb);
     }
 
     public static void main(String[] args) {
