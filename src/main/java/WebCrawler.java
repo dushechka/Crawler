@@ -3,6 +3,8 @@ import com.allendowney.thinkdast.LinksLoader;
 import com.allendowney.thinkdast.interfaces.Crawler;
 import com.allendowney.thinkdast.interfaces.Index;
 import dbs.DBFactory;
+import dbs.redis.JedisIndex;
+import dbs.redis.JedisMaker;
 import dbs.sql.RatesDatabase;
 import dbs.sql.orm.Page;
 
@@ -100,7 +102,7 @@ public class WebCrawler {
     }
 
     private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException, IOException {
-        Index index = null;
+        Index index;
         System.out.println("Maximum pages to scan per cycle: " + MAX_PAGES_PER_SCAN_CYCLE);
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
         Crawler crawler = new HtmlCrawler();
@@ -111,15 +113,11 @@ public class WebCrawler {
                 links = ratesDb.getBunchOfUnscannedLinks(siteId, MAX_PAGES_PER_SCAN_CYCLE);
                 ratesDb.updateLastScanDatesByUrl(links, new Timestamp(System.currentTimeMillis()));
                 System.out.println("Preparing to scan pages");
+                Set<String> unscanned;
                 try {
                     index = DBFactory.getIndex();
-                    Set<String> unscanned = crawler.crawlPages(links, DBFactory.getIndex());
+                    unscanned = crawler.crawlPages(links, DBFactory.getIndex());
                     index.close();
-                    for (String lnk : unscanned) {
-                        System.out.println("Unscanned! Page url is: " + lnk);
-                    }
-                    links.removeAll(unscanned);
-                    ratesDb.updateLastScanDatesByUrl(unscanned, null);
                     errCounter = 0;
                 } catch (IOException exc) {
                     errCounter++;
@@ -128,7 +126,10 @@ public class WebCrawler {
                     if (errCounter > 7 ) {
                         throw new IOException(exc);
                     }
+                    continue;
                 }
+                links.removeAll(unscanned);
+                ratesDb.updateLastScanDatesByUrl(unscanned, null);
                 index = DBFactory.getIndex();
                 updatePersonsPageRanks(links, ratesDb, DBFactory.getIndex());
                 index.close();
@@ -163,25 +164,34 @@ public class WebCrawler {
 
     private static void updatePersonsPageRanks(Set<String> links,
                                                RatesDatabase ratesDb, Index index) throws SQLException {
-            Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(ratesDb, index);
-            Set<String> absentLinks = new HashSet<>();
-            for (Integer personId : personPageRanks.keySet()) {
-                Map<String, Integer> ranks = personPageRanks.get(personId);
-                for (Map.Entry<String, Integer> rank : ranks.entrySet()) {
-                    String link = rank.getKey();
-                    if (!links.contains(link)) {
-                        absentLinks.add(link);
-                    }
-                }
-                for (String absLnk : absentLinks) {
-                    ranks.remove(absLnk);
-                }
-                ratesDb.insertPersonsPageRanks(personId, ranks);
-            }
+        Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(links, ratesDb, index);
+        for (Integer personId : personPageRanks.keySet()) {
+            Map<String, Integer> ranks = personPageRanks.get(personId);
+            ratesDb.insertPersonsPageRanks(personId, ranks);
+        }
     }
 
     private static Map<Integer, Map<String, Integer>> getPageRanksFromIndex(
-                RatesDatabase ratesDb, Index index) throws SQLException {
+            Set<String> links, RatesDatabase ratesDb, Index index) throws SQLException {
+        Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
+        Map<Integer, Map<String, Integer>> pageRanks = new HashMap<>();
+        for (Integer personId: keywords.keySet()) {
+            for (String keyword : keywords.get(personId)) {
+                System.out.println("Getting counts for keyword: " + keyword);
+                Map<String, Integer> personPageRanks = new HashMap<>();
+                pageRanks.put(personId, personPageRanks);
+                for (String link : links) {
+                    Integer count = index.getCount(link, keyword.toLowerCase());
+                    personPageRanks.merge(link, count, (first, second) -> first + second);
+                    System.out.println(link + ": " + count);
+                }
+            }
+        }
+        return pageRanks;
+    }
+
+    private static Map<Integer, Map<String, Integer>> getPageRanksFromIndex(
+                        RatesDatabase ratesDb, Index index) throws SQLException {
         Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
         Map<Integer, Map<String, Integer>> pageRanks = new HashMap<>();
         for (Integer personId: keywords.keySet()) {
@@ -269,7 +279,7 @@ public class WebCrawler {
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
 //            parseUnscannedPages(ratesDb);
-//            JedisIndex index = new JedisIndex(JedisMaker.make());
+//            JedisIndex index = (JedisIndex) DBFactory.getIndex();
 //            index.deleteAllKeys();
 //            index.printIndex();
             parseInput(args);

@@ -27,6 +27,6 @@ public class DBFactory {
     }
 
     public static Index getIndex() {
-        return new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT, REDIS_TIMEOUT));
+        return new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT));
     }
 }
