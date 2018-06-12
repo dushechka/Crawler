@@ -13,7 +13,11 @@ import java.util.*;
  */
 public class JedisIndex implements Index {
 
-	public static final String COLON = ":";
+	private static final String COLON = ":";
+	private static final String CRAWLER_PREFIX = "Crawler_";
+	private static final String URLSET_PREFIX = "URLSet:";
+	private static final String TERM_COUNTER_PREFIX = "TermCounter:";
+	private static final String ASTERISK = "*";
 	private Jedis jedis;
 
 	/**
@@ -31,7 +35,7 @@ public class JedisIndex implements Index {
 	 * @return Redis key.
 	 */
 	private String urlSetKey(String term) {
-		return "URLSet:" + term;
+		return CRAWLER_PREFIX + URLSET_PREFIX + term;
 	}
 
 	/**
@@ -40,7 +44,7 @@ public class JedisIndex implements Index {
 	 * @return Redis key.
 	 */
 	private String termCounterKey(String url) {
-		return "TermCounter:" + url;
+		return CRAWLER_PREFIX + TERM_COUNTER_PREFIX + url;
 	}
 
 	/**
@@ -218,7 +222,7 @@ public class JedisIndex implements Index {
 	 * @return
 	 */
 	public Set<String> urlSetKeys() {
-		return jedis.keys("URLSet:*");
+		return jedis.keys(urlSetKey(ASTERISK));
 	}
 
 	/**
@@ -229,7 +233,7 @@ public class JedisIndex implements Index {
 	 * @return
 	 */
 	public Set<String> termCounterKeys() {
-		return jedis.keys("TermCounter:*");
+		return jedis.keys(termCounterKey(ASTERISK));
 	}
 
 	/**
@@ -272,7 +276,7 @@ public class JedisIndex implements Index {
 	 * @return
 	 */
 	public void deleteAllKeys() {
-		Set<String> keys = jedis.keys("*");
+		Set<String> keys = jedis.keys(ASTERISK);
 		Transaction t = jedis.multi();
 		for (String key: keys) {
 			t.del(key);
