@@ -15,7 +15,7 @@ public class DBFactory {
     public static final String PASSWORD = "123";
     public static final String REDIS_HOST = "192.168.56.101";
     public static final int REDIS_PORT = 6379;
-    public static int REDIS_TIMEOUT = 10000;
+    public static int REDIS_TIMEOUT = 60000;
     public static RatesDatabase ratesDatabase = null;
 
     public static RatesDatabase getRatesDb() throws SQLException {

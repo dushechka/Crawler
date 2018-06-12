@@ -102,7 +102,7 @@ public class WebCrawler {
     }
 
     private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException, IOException {
-        Index index;
+        Index index = DBFactory.getIndex();
         System.out.println("Maximum pages to scan per cycle: " + MAX_PAGES_PER_SCAN_CYCLE);
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
         Crawler crawler = new HtmlCrawler();
@@ -115,9 +115,7 @@ public class WebCrawler {
                 System.out.println("Preparing to scan pages");
                 Set<String> unscanned;
                 try {
-                    index = DBFactory.getIndex();
-                    unscanned = crawler.crawlPages(links, DBFactory.getIndex());
-                    index.close();
+                    unscanned = crawler.crawlPages(links, index);
                     errCounter = 0;
                 } catch (IOException exc) {
                     errCounter++;
@@ -130,9 +128,7 @@ public class WebCrawler {
                 }
                 links.removeAll(unscanned);
                 ratesDb.updateLastScanDatesByUrl(unscanned, null);
-                index = DBFactory.getIndex();
-                updatePersonsPageRanks(links, ratesDb, DBFactory.getIndex());
-                index.close();
+                updatePersonsPageRanks(links, ratesDb, index);
             } while (!links.isEmpty());
         }
     }
@@ -180,10 +176,12 @@ public class WebCrawler {
                 System.out.println("Getting counts for keyword: " + keyword);
                 Map<String, Integer> personPageRanks = new HashMap<>();
                 pageRanks.put(personId, personPageRanks);
-                for (String link : links) {
-                    Integer count = index.getCount(link, keyword.toLowerCase());
-                    personPageRanks.merge(link, count, (first, second) -> first + second);
-                    System.out.println(link + ": " + count);
+                Set<String> kwl = index.getURLs(keyword.toLowerCase());
+                kwl.retainAll(links);
+                for (String lnk : kwl) {
+                    int count = index.getCount(lnk, keyword.toLowerCase());
+                    personPageRanks.merge(lnk, count, (first, second) -> first + second);
+                    System.out.println(lnk + ": " + count);
                 }
             }
         }

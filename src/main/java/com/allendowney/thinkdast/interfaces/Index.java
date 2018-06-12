@@ -71,6 +71,4 @@ public interface Index {
      * Should be used for development and testing, not production.
      */
     void printIndex();
-
-    void close();
 }
