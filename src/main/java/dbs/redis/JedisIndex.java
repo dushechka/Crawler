@@ -263,4 +263,9 @@ public class JedisIndex implements Index {
 		}
 		t.exec();
 	}
+
+	@Override
+	public void close() {
+		jedis.close();
+	}
 }

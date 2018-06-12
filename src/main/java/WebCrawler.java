@@ -100,6 +100,7 @@ public class WebCrawler {
     }
 
     private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException, IOException {
+        Index index = null;
         System.out.println("Maximum pages to scan per cycle: " + MAX_PAGES_PER_SCAN_CYCLE);
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
         Crawler crawler = new HtmlCrawler();
@@ -111,7 +112,9 @@ public class WebCrawler {
                 ratesDb.updateLastScanDatesByUrl(links, new Timestamp(System.currentTimeMillis()));
                 System.out.println("Preparing to scan pages");
                 try {
+                    index = DBFactory.getIndex();
                     Set<String> unscanned = crawler.crawlPages(links, DBFactory.getIndex());
+                    index.close();
                     for (String lnk : unscanned) {
                         System.out.println("Unscanned! Page url is: " + lnk);
                     }
@@ -126,7 +129,9 @@ public class WebCrawler {
                         throw new IOException(exc);
                     }
                 }
+                index = DBFactory.getIndex();
                 updatePersonsPageRanks(links, ratesDb, DBFactory.getIndex());
+                index.close();
             } while (!links.isEmpty());
         }
     }
