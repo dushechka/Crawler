@@ -2,7 +2,9 @@ package dbs;
 
 import com.allendowney.thinkdast.interfaces.Index;
 import dbs.redis.JedisIndex;
+import dbs.redis.LettuceIndex;
 import dbs.sql.RatesDatabase;
+import io.lettuce.core.RedisClient;
 import redis.clients.jedis.Jedis;
 
 import java.sql.Connection;
@@ -15,9 +17,11 @@ public class DBFactory {
     public static final String PASSWORD = "123";
     public static final String REDIS_HOST = "192.168.56.101";
     public static final int REDIS_PORT = 6379;
+    private static final String COLON = ":";
     public static int REDIS_TIMEOUT = 60000;
     private RatesDatabase ratesDatabase = null;
-    private Index index = null;
+    private Index lettuceIndex = null;
+    private Index jedisIndex = null;
 
     public RatesDatabase getRatesDb() throws SQLException {
             if (ratesDatabase == null) {
@@ -27,10 +31,18 @@ public class DBFactory {
         return ratesDatabase;
     }
 
-    public Index getIndex() {
-        if (index == null) {
-            index = new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT));
+    public Index getJedisIndex() {
+        if (jedisIndex == null) {
+            jedisIndex = new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT));
         }
-        return index;
+        return jedisIndex;
+    }
+
+    public Index getLettuceIndex() {
+        if (lettuceIndex == null) {
+            lettuceIndex = new LettuceIndex(
+                    RedisClient.create(REDIS_HOST + COLON + REDIS_PORT));
+        }
+        return lettuceIndex;
     }
 }
