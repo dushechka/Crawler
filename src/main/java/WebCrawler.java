@@ -133,6 +133,19 @@ public class WebCrawler {
         }
     }
 
+    private static void reindexPageRanks(RatesDatabase ratesDb, Index index) throws SQLException{
+        Map<Integer, Map<String, Integer>> personsPageRanks = ratesDb.getPersonsPageRanks();
+        Map<Integer, Map<String, Integer>> indexPpr = getPageRanksFromIndex(ratesDb, index);
+        for (Integer personId : personsPageRanks.keySet()) {
+            Map<String, Integer> dbPageRandks = personsPageRanks.get(personId);
+            Map<String, Integer> indexPageRanks = indexPpr.get(personId);
+            for (String url : dbPageRandks.keySet()) {
+                indexPageRanks.remove(url);
+            }
+            ratesDb.insertPersonsPageRanks(personId, indexPageRanks);
+        }
+    }
+
     /**
      *
      * @param url   String in DB, by which we can get site ID
@@ -194,12 +207,14 @@ public class WebCrawler {
         Map<Integer, Map<String, Integer>> pageRanks = new HashMap<>();
         for (Integer personId: keywords.keySet()) {
             Map<String, Integer> personPageRanks = new HashMap<>();
+            System.out.println();
             for (String word : keywords.get(personId)) {
                 System.out.println("Getting counts for word: " + word);
                 Map<String, Integer> counts = index.getCounts(word.toLowerCase());
                 System.out.println("Counts: " + counts);
                 putOrUpdate(index.getCounts(word.toLowerCase()), personPageRanks);
             }
+            System.out.println("\nAll page ranks for person with ID = " + personId);
             for (String url : personPageRanks.keySet()) {
                 System.out.println(url + " : " + personPageRanks.get(url));
             }
@@ -220,6 +235,7 @@ public class WebCrawler {
         if (args.length == 0) {
             System.out.println("Usage: java Crawler -<param>");
             System.out.println("List of available parameters:");
+            System.out.println("-rdx - reindex persons page ranks from previously saved vocabularies;");
             System.out.println("-irl - insert links to robots.txt in database for found new sites;");
             System.out.println("-frl - fetch links from robots.txt's and save them to the database;");
             System.out.println("-fsl - fetch links from unscanned sitemaps, found in db and save them;");
@@ -247,6 +263,8 @@ public class WebCrawler {
             }
 
             for (String arg : args) {
+                if (arg.contains("-rdx"))
+                    reindexPageRanks(DBFactory.getRatesDb(), DBFactory.getIndex());
                 if (arg.contains("-irl"))
                     insertLinksToRobotsPages(DBFactory.getRatesDb());
                 if (arg.contains("-frl"))
@@ -264,6 +282,8 @@ public class WebCrawler {
 
     private static void runWholeProgramCycle() throws SQLException, IOException {
         RatesDatabase rdb = DBFactory.getRatesDb();
+        Index index = DBFactory.getIndex();
+        reindexPageRanks(rdb, index);
         insertLinksToRobotsPages(rdb);
         fetchLinksFromRobotsTxt(rdb);
         fetchLinksFromSitmaps(rdb);
@@ -273,6 +293,7 @@ public class WebCrawler {
     public static void main(String[] args) {
         try {
             RatesDatabase ratesDb = DBFactory.getRatesDb();
+//            reindexPageRanks(ratesDb, DBFactory.getIndex());
 //            insertLinksToRobotsPages(ratesDb);
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
@@ -281,7 +302,6 @@ public class WebCrawler {
 //            index.deleteAllKeys();
 //            index.printIndex();
             parseInput(args);
-//            updateAllPersonsPageRanks(ratesDb, index);
         } catch (Exception exc) {
             exc.printStackTrace();
         }

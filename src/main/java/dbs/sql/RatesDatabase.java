@@ -22,6 +22,9 @@ public class RatesDatabase {
     private static final String SITEMAP = "sitemap";
     private static final String XML = "xml";
     private static final String NAME_COLUMN = "name";
+    public static final String PERSON_ID_COLUMN = "PersonID";
+    public static final String PAGE_ID_COLUMN = "PageID";
+    public static final String RANK_COLUMN = "Rank";
     private final Connection conn;
 
     public RatesDatabase(Connection conn) {
@@ -31,6 +34,30 @@ public class RatesDatabase {
     private ResultSet getPersons() throws SQLException {
         Statement stmt = conn.createStatement();
         return stmt.executeQuery("SELECT * FROM persons");
+    }
+
+    public Map<Integer, Map<String, Integer>> getPersonsPageRanks() throws SQLException {
+        Map<Integer, Map<String, Integer>> personsPageRanks = new HashMap<>();
+        ResultSet rs = getPersons();
+        while (rs.next()) {
+            personsPageRanks.put(rs.getInt(ID_COLUMN), new HashMap<>());
+        }
+        rs.close();
+        Statement stmt = conn.createStatement();
+        PreparedStatement pst = conn.prepareStatement("SELECT URL FROM pages WHERE ID = ?");
+        rs = stmt.executeQuery("SELECT * FROM personspagerank");
+        while (rs.next()) {
+            pst.setInt(1, rs.getInt(PAGE_ID_COLUMN));
+            ResultSet rset = pst.executeQuery();
+            if (rset.next()) {
+                int personId = rs.getInt(PERSON_ID_COLUMN);
+                Map<String, Integer> ppr = personsPageRanks.get(personId);
+                ppr.put(rset.getString(PAGES_URL_COLUMN), rs.getInt(RANK_COLUMN));
+            }
+        }
+        stmt.close();
+        pst.close();
+        return personsPageRanks;
     }
 
     public Map<Integer, Set<String>> getPersonsWithKeywords() throws SQLException {
@@ -133,8 +160,7 @@ public class RatesDatabase {
      * @return Unscanned links to robots.txt files.
      * @throws SQLException
      */
-    public @Nullable
-    Set<String> getUnscannedRobotsTxtLinks() throws SQLException {
+    public Set<String> getUnscannedRobotsTxtLinks() throws SQLException {
         Set<String> links = new HashSet<>();
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(
@@ -151,7 +177,7 @@ public class RatesDatabase {
      * @return Unscanned links to sitmep.xml files.
      * @throws SQLException
      */
-    public @Nullable Set<String> getUnscannedSitemapLinks() throws SQLException {
+    public Set<String> getUnscannedSitemapLinks() throws SQLException {
         Set<String> links = new HashSet<>();
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(
