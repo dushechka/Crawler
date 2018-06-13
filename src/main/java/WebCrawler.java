@@ -101,8 +101,7 @@ public class WebCrawler {
         } while (!links.isEmpty());
     }
 
-    private static void parseUnscannedPages(RatesDatabase ratesDb) throws SQLException, IOException {
-        Index index = DBFactory.getIndex();
+    private static void parseUnscannedPages(RatesDatabase ratesDb, Index index) throws SQLException, IOException {
         System.out.println("Maximum pages to scan per cycle: " + MAX_PAGES_PER_SCAN_CYCLE);
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
         Crawler crawler = new HtmlCrawler();
@@ -231,7 +230,7 @@ public class WebCrawler {
         }
     }
 
-    private static void parseInput(String[] args) throws SQLException, IOException {
+    private static void parseInput(String[] args, DBFactory dbFactory) throws SQLException, IOException {
         if (args.length == 0) {
             System.out.println("Usage: java Crawler -<param>");
             System.out.println("List of available parameters:");
@@ -264,35 +263,35 @@ public class WebCrawler {
 
             for (String arg : args) {
                 if (arg.contains("-rdx"))
-                    reindexPageRanks(DBFactory.getRatesDb(), DBFactory.getIndex());
+                    reindexPageRanks(dbFactory.getRatesDb(), dbFactory.getIndex());
                 if (arg.contains("-irl"))
-                    insertLinksToRobotsPages(DBFactory.getRatesDb());
+                    insertLinksToRobotsPages(dbFactory.getRatesDb());
                 if (arg.contains("-frl"))
-                    fetchLinksFromRobotsTxt(DBFactory.getRatesDb());
+                    fetchLinksFromRobotsTxt(dbFactory.getRatesDb());
                 if (arg.contains("-fsl"))
-                    fetchLinksFromSitmaps(DBFactory.getRatesDb());
+                    fetchLinksFromSitmaps(dbFactory.getRatesDb());
                 if (arg.contains("-pul"))
-                    parseUnscannedPages(DBFactory.getRatesDb());
+                    parseUnscannedPages(dbFactory.getRatesDb(), dbFactory.getIndex());
                 if (arg.contains("-all")) {
-                    runWholeProgramCycle();
+                    runWholeProgramCycle(dbFactory);
                 }
             }
         }
     }
 
-    private static void runWholeProgramCycle() throws SQLException, IOException {
-        RatesDatabase rdb = DBFactory.getRatesDb();
-        Index index = DBFactory.getIndex();
-        reindexPageRanks(rdb, index);
+    private static void runWholeProgramCycle(DBFactory dbFactory) throws SQLException, IOException {
+        RatesDatabase rdb = dbFactory.getRatesDb();
+        reindexPageRanks(rdb, dbFactory.getIndex());
         insertLinksToRobotsPages(rdb);
         fetchLinksFromRobotsTxt(rdb);
         fetchLinksFromSitmaps(rdb);
-        parseUnscannedPages(rdb);
+        parseUnscannedPages(rdb, dbFactory.getIndex());
     }
 
     public static void main(String[] args) {
         try {
-            RatesDatabase ratesDb = DBFactory.getRatesDb();
+            DBFactory dbFactory = new DBFactory();
+            RatesDatabase ratesDb = dbFactory.getRatesDb();
 //            reindexPageRanks(ratesDb, DBFactory.getIndex());
 //            insertLinksToRobotsPages(ratesDb);
 //            fetchLinksFromRobotsTxt(ratesDb);
@@ -301,7 +300,7 @@ public class WebCrawler {
 //            JedisIndex index = (JedisIndex) DBFactory.getIndex();
 //            index.deleteAllKeys();
 //            index.printIndex();
-            parseInput(args);
+            parseInput(args, dbFactory);
         } catch (Exception exc) {
             exc.printStackTrace();
         }

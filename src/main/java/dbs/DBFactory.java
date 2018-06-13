@@ -16,9 +16,10 @@ public class DBFactory {
     public static final String REDIS_HOST = "192.168.56.101";
     public static final int REDIS_PORT = 6379;
     public static int REDIS_TIMEOUT = 60000;
-    public static RatesDatabase ratesDatabase = null;
+    private RatesDatabase ratesDatabase = null;
+    private Index index = null;
 
-    public static RatesDatabase getRatesDb() throws SQLException {
+    public RatesDatabase getRatesDb() throws SQLException {
             if (ratesDatabase == null) {
                 Connection conn = DriverManager.getConnection(DB_ADRESS, USER_NAME, PASSWORD);
                 ratesDatabase = new RatesDatabase(conn);
@@ -26,7 +27,10 @@ public class DBFactory {
         return ratesDatabase;
     }
 
-    public static Index getIndex() {
-        return new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT));
+    public Index getIndex() {
+        if (index == null) {
+            index = new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT));
+        }
+        return index;
     }
 }
