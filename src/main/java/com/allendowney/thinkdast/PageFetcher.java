@@ -6,6 +6,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.zip.GZIPInputStream;
 
 
 public class PageFetcher {
@@ -34,15 +36,30 @@ public class PageFetcher {
 
 	public static Elements fetchSitemapElements(String url) throws IOException {
 		Elements content = new Elements();
-	    if (!url.contains(".gz")) {
-			sleepIfNeeded();
+		Document doc;
+		sleepIfNeeded();
 
+	    if (url.endsWith(".gz")) {
+			StringBuilder page = new StringBuilder();
+			GZIPInputStream gis = new GZIPInputStream(
+										new URL(url).openStream());
+			byte[] buffer = new byte[1024];
+			int count = 0;
+
+			while ((count = gis.read(buffer, 0, 1024)) != -1) {
+				page.append(new String(buffer), 0, count);
+			}
+
+			doc = Jsoup.parse(page.toString());
+			gis.close();
+		} else {
 			Connection conn = Jsoup.connect(url);
-			Document doc = conn.get();
-
-			content = doc.getElementsByTag(SITEMAP_TAG);
-			content.addAll(doc.getElementsByTag(URL_TAG));
+			doc = conn.get();
 		}
+
+		content = doc.getElementsByTag(SITEMAP_TAG);
+	    content.addAll(doc.getElementsByTag(URL_TAG));
+
 		return content;
 	}
 

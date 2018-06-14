@@ -287,6 +287,5 @@ public class LettuceIndex implements Index {
     @Override
     public void close() {
         connection.close();
-        redisClient.shutdown();
     }
 }

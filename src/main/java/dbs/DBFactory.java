@@ -4,12 +4,15 @@ import com.allendowney.thinkdast.interfaces.Index;
 import dbs.redis.JedisIndex;
 import dbs.redis.LettuceIndex;
 import dbs.sql.RatesDatabase;
+import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
 import redis.clients.jedis.Jedis;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.Duration;
 
 public class DBFactory {
     public static final String DB_ADRESS = "jdbc:mysql://localhost:3306/searchandratewords";
@@ -20,7 +23,7 @@ public class DBFactory {
     private static final String COLON = ":";
     public static int REDIS_TIMEOUT = 60000;
     private RatesDatabase ratesDatabase = null;
-    private Index lettuceIndex = null;
+    private RedisClient lettuceClient = null;
     private Index jedisIndex = null;
 
     public RatesDatabase getRatesDb() throws SQLException {
@@ -39,10 +42,13 @@ public class DBFactory {
     }
 
     public Index getLettuceIndex() {
-        if (lettuceIndex == null) {
-            lettuceIndex = new LettuceIndex(
-                    RedisClient.create(REDIS_HOST + COLON + REDIS_PORT));
+        if (lettuceClient == null) {
+            RedisURI redisURI = RedisURI.builder()
+                                        .redis(REDIS_HOST, REDIS_PORT)
+                                        .withTimeout(Duration.ofMillis(REDIS_TIMEOUT))
+                                        .build();
+            lettuceClient = RedisClient.create(redisURI);
         }
-        return lettuceIndex;
+        return new LettuceIndex(lettuceClient);
     }
 }
