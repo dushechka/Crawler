@@ -2,12 +2,17 @@ package dbs;
 
 import com.allendowney.thinkdast.interfaces.Index;
 import dbs.redis.JedisIndex;
+import dbs.redis.LettuceIndex;
 import dbs.sql.RatesDatabase;
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
 import redis.clients.jedis.Jedis;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.Duration;
 
 public class DBFactory {
     public static final String DB_ADRESS = "jdbc:mysql://localhost:3306/searchandratewords";
@@ -15,9 +20,11 @@ public class DBFactory {
     public static final String PASSWORD = "123";
     public static final String REDIS_HOST = "192.168.56.101";
     public static final int REDIS_PORT = 6379;
+    private static final String COLON = ":";
     public static int REDIS_TIMEOUT = 60000;
     private RatesDatabase ratesDatabase = null;
-    private Index index = null;
+    private RedisClient lettuceClient = null;
+    private Index jedisIndex = null;
 
     public RatesDatabase getRatesDb() throws SQLException {
             if (ratesDatabase == null) {
@@ -27,10 +34,21 @@ public class DBFactory {
         return ratesDatabase;
     }
 
-    public Index getIndex() {
-        if (index == null) {
-            index = new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT));
+    public Index getJedisIndex() {
+        if (jedisIndex == null) {
+            jedisIndex = new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT));
         }
-        return index;
+        return jedisIndex;
+    }
+
+    public Index getLettuceIndex() {
+        if (lettuceClient == null) {
+            RedisURI redisURI = RedisURI.builder()
+                                        .redis(REDIS_HOST, REDIS_PORT)
+                                        .withTimeout(Duration.ofMillis(REDIS_TIMEOUT))
+                                        .build();
+            lettuceClient = RedisClient.create(redisURI);
+        }
+        return new LettuceIndex(lettuceClient);
     }
 }

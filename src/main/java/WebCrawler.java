@@ -3,8 +3,6 @@ import com.allendowney.thinkdast.LinksLoader;
 import com.allendowney.thinkdast.interfaces.Crawler;
 import com.allendowney.thinkdast.interfaces.Index;
 import dbs.DBFactory;
-import dbs.redis.JedisIndex;
-import dbs.redis.JedisMaker;
 import dbs.sql.RatesDatabase;
 import dbs.sql.orm.Page;
 
@@ -263,7 +261,7 @@ public class WebCrawler {
 
             for (String arg : args) {
                 if (arg.contains("-rdx"))
-                    reindexPageRanks(dbFactory.getRatesDb(), dbFactory.getIndex());
+                    reindexPageRanks(dbFactory.getRatesDb(), dbFactory.getJedisIndex());
                 if (arg.contains("-irl"))
                     insertLinksToRobotsPages(dbFactory.getRatesDb());
                 if (arg.contains("-frl"))
@@ -271,7 +269,7 @@ public class WebCrawler {
                 if (arg.contains("-fsl"))
                     fetchLinksFromSitmaps(dbFactory.getRatesDb());
                 if (arg.contains("-pul"))
-                    parseUnscannedPages(dbFactory.getRatesDb(), dbFactory.getIndex());
+                    parseUnscannedPages(dbFactory.getRatesDb(), dbFactory.getJedisIndex());
                 if (arg.contains("-all")) {
                     runWholeProgramCycle(dbFactory);
                 }
@@ -281,23 +279,23 @@ public class WebCrawler {
 
     private static void runWholeProgramCycle(DBFactory dbFactory) throws SQLException, IOException {
         RatesDatabase rdb = dbFactory.getRatesDb();
-        reindexPageRanks(rdb, dbFactory.getIndex());
+        reindexPageRanks(rdb, dbFactory.getJedisIndex());
         insertLinksToRobotsPages(rdb);
         fetchLinksFromRobotsTxt(rdb);
         fetchLinksFromSitmaps(rdb);
-        parseUnscannedPages(rdb, dbFactory.getIndex());
+        parseUnscannedPages(rdb, dbFactory.getJedisIndex());
     }
 
     public static void main(String[] args) {
         try {
             DBFactory dbFactory = new DBFactory();
             RatesDatabase ratesDb = dbFactory.getRatesDb();
-//            reindexPageRanks(ratesDb, DBFactory.getIndex());
+//            reindexPageRanks(ratesDb, DBFactory.getJedisIndex());
 //            insertLinksToRobotsPages(ratesDb);
 //            fetchLinksFromRobotsTxt(ratesDb);
 //            fetchLinksFromSitmaps(ratesDb);
 //            parseUnscannedPages(ratesDb);
-//            JedisIndex index = (JedisIndex) DBFactory.getIndex();
+//            JedisIndex index = (JedisIndex) DBFactory.getJedisIndex();
 //            index.deleteAllKeys();
 //            index.printIndex();
             parseInput(args, dbFactory);
