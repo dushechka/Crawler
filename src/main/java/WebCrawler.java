@@ -19,7 +19,7 @@ import static com.allendowney.thinkdast.LinksLoader.ROBOTS_TXT_APPENDIX;
 
 public class WebCrawler {
 
-    private static int MAX_PAGES_PER_SCAN_CYCLE = 100;
+    private static int MAX_PAGES_PER_SCAN_CYCLE = 10;
 
     /**
      * Inserts links to the robots.txt file

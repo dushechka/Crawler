@@ -9,11 +9,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class DBFactory {
-    public static final String DB_ADRESS = "jdbc:mysql://localhost:3306/searchandratewords";
-    public static final String USER_NAME = "crawler";
-    public static final String PASSWORD = "123";
-    public static final String REDIS_HOST = "192.168.56.101";
+public class  DBFactory {
+    public static final String DB_ADRESS = "jdbc:mysql://localhost:3306/searchandratewords?serverTimezone=UTC&useSSL=false";
+    public static final String USER_NAME = "apiuser";
+    public static final String PASSWORD = "PassToUserApi";
+    public static final String REDIS_HOST = "redis";
     public static final int REDIS_PORT = 6379;
     public static int REDIS_TIMEOUT = 10000;
     public static RatesDatabase ratesDatabase = null;
@@ -27,6 +27,6 @@ public class DBFactory {
     }
 
     public static Index getIndex() {
-        return new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT, REDIS_TIMEOUT));
+        return new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT, REDIS_TIMEOUT,REDIS_TIMEOUT));
     }
 }
