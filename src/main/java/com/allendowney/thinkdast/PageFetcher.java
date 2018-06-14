@@ -35,7 +35,7 @@ public class PageFetcher {
 	}
 
 	public static Elements fetchSitemapElements(String url) throws IOException {
-		Elements content = new Elements();
+		Elements content;
 		Document doc;
 		sleepIfNeeded();
 
@@ -44,7 +44,7 @@ public class PageFetcher {
 			GZIPInputStream gis = new GZIPInputStream(
 										new URL(url).openStream());
 			byte[] buffer = new byte[1024];
-			int count = 0;
+			int count;
 
 			while ((count = gis.read(buffer, 0, 1024)) != -1) {
 				page.append(new String(buffer), 0, count);

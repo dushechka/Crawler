@@ -3,10 +3,13 @@ package com.allendowney.thinkdast;
 import com.allendowney.thinkdast.interfaces.Crawler;
 import com.allendowney.thinkdast.interfaces.Index;
 import com.allendowney.thinkdast.interfaces.TermContainer;
+import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -59,6 +62,13 @@ public class HtmlCrawler implements Crawler {
 		}
 		return unprocessed;
 	}
+
+	public void crawl(Set<String> links) throws Exception {
+        for (String link : links) {
+			URL url = new URL(link);
+			System.out.println(ArticleExtractor.INSTANCE.getText(url));
+        }
+    }
 
 	private String crawlFromQueue() throws IOException {
 		if (queue.isEmpty()) {
