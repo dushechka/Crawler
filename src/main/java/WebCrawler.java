@@ -287,20 +287,11 @@ public class WebCrawler {
 
     public static void main(String[] args) {
         try {
-            DBFactory dbFactory = new DBFactory();
-//            RatesDatabase ratesDb = dbFactory.getRatesDb();
-//            reindexPageRanks(ratesDb, DBFactory.getJedisIndex());
-//            insertLinksToRobotsPages(ratesDb);
-//            fetchLinksFromRobotsTxt(ratesDb);
-//            fetchLinksFromSitmaps(ratesDb);
-//            parseUnscannedPages(ratesDb);
-//            JedisIndex index = (JedisIndex) DBFactory.getJedisIndex();
-//            index.deleteAllKeys();
-//            index.printIndex();
-            parseInput(args, dbFactory);
-//            Set<String> links = new HashSet<>();
-//            links.add("https://www.pravda.ru/world/asia/middleeast/14-06-2018/1386361-egorchenkov-0/");
-//            new HtmlCrawler().crawl(links);
+//            DBFactory dbFactory = new DBFactory();
+//            parseInput(args, dbFactory);
+            Set<String> links = new HashSet<>();
+            links.add("https://www.pravda.ru/world/asia/middleeast/14-06-2018/1386361-egorchenkov-0/");
+            new HtmlCrawler().crawl(links);
         } catch (Exception exc) {
             exc.printStackTrace();
         }
