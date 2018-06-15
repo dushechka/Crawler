@@ -180,18 +180,18 @@ public class WebCrawler {
         Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
         Map<Integer, Map<String, Integer>> pageRanks = new HashMap<>();
         for (Integer personId: keywords.keySet()) {
+            Map<String, Integer> personPageRanks = new HashMap<>();
+            pageRanks.put(personId, personPageRanks);
             for (String keyword : keywords.get(personId)) {
                 System.out.println("Getting counts for keyword: " + keyword);
-                Map<String, Integer> personPageRanks = new HashMap<>();
-                pageRanks.put(personId, personPageRanks);
                 Set<String> kwl = index.getURLs(keyword.toLowerCase());
                 kwl.retainAll(links);
                 for (String lnk : kwl) {
                     Integer count = index.getCount(lnk, keyword.toLowerCase());
                     if (count != null) {
+                        System.out.println(lnk + ": " + count);
                         personPageRanks.merge(lnk, count, (first, second) -> first + second);
                     }
-                        System.out.println(lnk + ": " + count);
                 }
             }
         }
