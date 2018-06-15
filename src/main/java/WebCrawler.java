@@ -114,6 +114,8 @@ public class WebCrawler {
                 try {
                     unscanned = crawler.crawlPages(links, index);
                     errCounter = 0;
+                    links.removeAll(unscanned);
+                    updatePersonsPageRanks(links, ratesDb, index);
                 } catch (IOException exc) {
                     errCounter++;
                     ratesDb.updateLastScanDatesByUrl(links, null);
@@ -121,11 +123,7 @@ public class WebCrawler {
                     if (errCounter > 7 ) {
                         throw new IOException(exc);
                     }
-                    continue;
                 }
-                links.removeAll(unscanned);
-                ratesDb.updateLastScanDatesByUrl(unscanned, null);
-                updatePersonsPageRanks(links, ratesDb, index);
             } while (!links.isEmpty());
         }
     }
@@ -189,9 +187,11 @@ public class WebCrawler {
                 Set<String> kwl = index.getURLs(keyword.toLowerCase());
                 kwl.retainAll(links);
                 for (String lnk : kwl) {
-                    int count = index.getCount(lnk, keyword.toLowerCase());
-                    personPageRanks.merge(lnk, count, (first, second) -> first + second);
-                    System.out.println(lnk + ": " + count);
+                    Integer count = index.getCount(lnk, keyword.toLowerCase());
+                    if (count != null) {
+                        personPageRanks.merge(lnk, count, (first, second) -> first + second);
+                    }
+                        System.out.println(lnk + ": " + count);
                 }
             }
         }
@@ -208,8 +208,7 @@ public class WebCrawler {
             for (String word : keywords.get(personId)) {
                 System.out.println("Getting counts for word: " + word);
                 Map<String, Integer> counts = index.getCounts(word.toLowerCase());
-                System.out.println("Counts: " + counts);
-                putOrUpdate(index.getCounts(word.toLowerCase()), personPageRanks);
+                putOrUpdate(counts, personPageRanks);
             }
             System.out.println("\nAll page ranks for person with ID = " + personId);
             for (String url : personPageRanks.keySet()) {
@@ -298,10 +297,10 @@ public class WebCrawler {
 //            JedisIndex index = (JedisIndex) DBFactory.getJedisIndex();
 //            index.deleteAllKeys();
 //            index.printIndex();
-//            parseInput(args, dbFactory);
-            Set<String> links = new HashSet<>();
-            links.add("https://www.pravda.ru/world/asia/middleeast/14-06-2018/1386361-egorchenkov-0/");
-            new HtmlCrawler().crawl(links);
+            parseInput(args, dbFactory);
+//            Set<String> links = new HashSet<>();
+//            links.add("https://www.pravda.ru/world/asia/middleeast/14-06-2018/1386361-egorchenkov-0/");
+//            new HtmlCrawler().crawl(links);
         } catch (Exception exc) {
             exc.printStackTrace();
         }

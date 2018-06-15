@@ -4,11 +4,11 @@ import com.allendowney.thinkdast.interfaces.Crawler;
 import com.allendowney.thinkdast.interfaces.Index;
 import com.allendowney.thinkdast.interfaces.TermContainer;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
+import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -40,9 +40,19 @@ public class HtmlCrawler implements Crawler {
 		return url;
 	}
 
+	/**
+	 * Crawls pages and saves vocabularies from them
+	 * into index.
+	 *
+	 * @param links links for pages to crawl
+	 * @param index index to save vocabularies
+	 * @return		set of unavailable pages
+	 * @throws IOException	When encounters multiple
+	 * 						consistent IO exceptions.
+	 */
 	@Override
-	public Set<String> crawlPages(Set<String> links, Index index) throws IOException {
-		Set<String> unprocessed = new HashSet<>();
+	public Set<String> crawlPages(final Set<String> links, Index index) throws IOException {
+		Set<String> unavailable = new HashSet<>();
 		int errCounter = 0;
 		for (String url : links) {
 			System.out.println("Start crawling: " + url);
@@ -51,8 +61,11 @@ public class HtmlCrawler implements Crawler {
 				TermContainer tc = new TermCounter(url, paragraphs);
 				index.putTerms(tc);
 				errCounter = 0;
+			} catch (HttpStatusException e) {
+				unavailable.add(url);
+				e.printStackTrace();
 			} catch (Exception exc) {
-		    	unprocessed.add(url);
+		        unavailable.add(url);
 		    	errCounter++;
 		    	exc.printStackTrace();
 		    	if (errCounter > 7) {
@@ -60,7 +73,7 @@ public class HtmlCrawler implements Crawler {
 				}
 			}
 		}
-		return unprocessed;
+		return unavailable;
 	}
 
 	public void crawl(Set<String> links) throws Exception {

@@ -1,6 +1,7 @@
 package com.allendowney.thinkdast.interfaces;
 
 import com.allendowney.thinkdast.interfaces.TermContainer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -44,9 +45,9 @@ public interface Index {
      *
      * @param url
      * @param term
-     * @return
+     * @return null if no such enty in the index
      */
-    Integer getCount(String url, String term);
+    @Nullable Integer getCount(String url, String term);
 
     /**
      * Adds vocabulary from page to the index.
