@@ -32,12 +32,19 @@ public class HtmlCrawler implements Crawler {
 	}
 
 	@Override
-	public String crawlPage(String url, Index index) throws IOException {
-		Elements paragraphs = PageFetcher.fetchPageParagraphs(url);
-		System.out.println("Crawling " + url);
-		TermContainer tc = new TermCounter(url, paragraphs);
-		index.putTerms(tc);
-		return url;
+	public String crawlPage(String link, Index index) throws Exception {
+		System.out.println("Crawling " + link);
+		URL url = new URL(link);
+		String content = ArticleExtractor.INSTANCE.getText(url);
+		if (content.isEmpty() || content == null) {
+			System.out.println("Empty content");
+			System.out.println(content);
+		} else {
+			System.out.println(content);
+			TermContainer tc = new TermCounter(link, content);
+			index.putTerms(tc);
+		}
+		return link;
 	}
 
 	/**
@@ -51,15 +58,12 @@ public class HtmlCrawler implements Crawler {
 	 * 						consistent IO exceptions.
 	 */
 	@Override
-	public Set<String> crawlPages(final Set<String> links, Index index) throws IOException {
+	public Set<String> crawlPages(final Set<String> links, Index index) throws Exception {
 		Set<String> unavailable = new HashSet<>();
 		int errCounter = 0;
 		for (String url : links) {
-			System.out.println("Start crawling: " + url);
 		    try {
-				Elements paragraphs = PageFetcher.fetchPageParagraphs(url);
-				TermContainer tc = new TermCounter(url, paragraphs);
-				index.putTerms(tc);
+		        crawlPage(url, index);
 				errCounter = 0;
 			} catch (HttpStatusException e) {
 				unavailable.add(url);
@@ -69,19 +73,12 @@ public class HtmlCrawler implements Crawler {
 		    	errCounter++;
 		    	exc.printStackTrace();
 		    	if (errCounter > 7) {
-		    		throw new IOException(exc);
+		    		throw new Exception(exc);
 				}
 			}
 		}
 		return unavailable;
 	}
-
-	public void crawl(Set<String> links) throws Exception {
-        for (String link : links) {
-			URL url = new URL(link);
-			System.out.println(ArticleExtractor.INSTANCE.getText(url));
-        }
-    }
 
 	private String crawlFromQueue() throws IOException {
 		if (queue.isEmpty()) {

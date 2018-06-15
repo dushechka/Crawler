@@ -21,13 +21,17 @@ import org.jsoup.select.Elements;
 public class TermCounter implements TermContainer {
 
 	public static final String LINE_SEPARATOR = "\n";
-	private Map<String, Integer> map;
+	private Map<String, Integer> map = new HashMap<>();
 	private String label;
 
 	public TermCounter(String label, Elements paragraphs) {
 		this.label = label;
-		this.map = new HashMap<>();
 		processElements(paragraphs);
+	}
+
+	public TermCounter(String label, String content) {
+		this.label = label;
+		processText(content);
 	}
 
 	@Override

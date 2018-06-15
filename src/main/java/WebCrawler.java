@@ -19,7 +19,7 @@ import static com.allendowney.thinkdast.LinksLoader.ROBOTS_TXT_APPENDIX;
 
 public class WebCrawler {
 
-    private static int MAX_PAGES_PER_SCAN_CYCLE = 100;
+    private static int MAX_PAGES_PER_SCAN_CYCLE = 10;
 
     /**
      * Inserts links to the robots.txt file
@@ -99,7 +99,7 @@ public class WebCrawler {
         } while (!links.isEmpty());
     }
 
-    private static void parseUnscannedPages(RatesDatabase ratesDb, Index index) throws SQLException, IOException {
+    private static void parseUnscannedPages(RatesDatabase ratesDb, Index index) throws Exception {
         System.out.println("Maximum pages to scan per cycle: " + MAX_PAGES_PER_SCAN_CYCLE);
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
         Crawler crawler = new HtmlCrawler();
@@ -116,12 +116,12 @@ public class WebCrawler {
                     errCounter = 0;
                     links.removeAll(unscanned);
                     updatePersonsPageRanks(links, ratesDb, index);
-                } catch (IOException exc) {
+                } catch (Exception exc) {
                     errCounter++;
                     ratesDb.updateLastScanDatesByUrl(links, null);
                     exc.printStackTrace();
                     if (errCounter > 7 ) {
-                        throw new IOException(exc);
+                        throw new Exception(exc);
                     }
                 }
             } while (!links.isEmpty());
@@ -227,7 +227,7 @@ public class WebCrawler {
         }
     }
 
-    private static void parseInput(String[] args, DBFactory dbFactory) throws SQLException, IOException {
+    private static void parseInput(String[] args, DBFactory dbFactory) throws Exception {
         if (args.length == 0) {
             System.out.println("Usage: java Crawler -<param>");
             System.out.println("List of available parameters:");
@@ -276,7 +276,7 @@ public class WebCrawler {
         }
     }
 
-    private static void runWholeProgramCycle(DBFactory dbFactory) throws SQLException, IOException {
+    private static void runWholeProgramCycle(DBFactory dbFactory) throws Exception {
         RatesDatabase rdb = dbFactory.getRatesDb();
         reindexPageRanks(rdb, dbFactory.getJedisIndex());
         insertLinksToRobotsPages(rdb);
@@ -287,11 +287,8 @@ public class WebCrawler {
 
     public static void main(String[] args) {
         try {
-//            DBFactory dbFactory = new DBFactory();
-//            parseInput(args, dbFactory);
-            Set<String> links = new HashSet<>();
-            links.add("https://www.pravda.ru/world/asia/middleeast/14-06-2018/1386361-egorchenkov-0/");
-            new HtmlCrawler().crawl(links);
+            DBFactory dbFactory = new DBFactory();
+            parseInput(args, dbFactory);
         } catch (Exception exc) {
             exc.printStackTrace();
         }
