@@ -166,19 +166,19 @@ public class WebCrawler {
     private static void saveLinksToDb(String url, Map<String, Timestamp> links,
                                       RatesDatabase db) throws SQLException {
         Integer siteId = db.getSiteIdByLink(url);
-        Set<String> withNoTimestams = new HashSet<>();
-        for (String link : links.keySet()) {
-            if (links.get(link) == null) {
-                withNoTimestams.add(link);
-            }
-        }
-        for (String link : withNoTimestams) {
-            links.remove(link);
-        }
+//        Set<String> withNoTimestams = new HashSet<>();
+//        for (String link : links.keySet()) {
+//            if (links.get(link) == null) {
+//                withNoTimestams.add(link);
+//            }
+//        }
+//        for (String link : withNoTimestams) {
+//            links.remove(link);
+//        }
         System.out.println("Adding links to DB from " + url);
         if (siteId != null) {
             db.insertRowsInPagesTable(links, siteId, null);
-            db.insertRowsInPagesTable(withNoTimestams, siteId, null);
+//            db.insertRowsInPagesTable(withNoTimestams, siteId, null);
         }
     }
 

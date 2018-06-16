@@ -319,13 +319,14 @@ public class RatesDatabase {
         pst.setInt(2, siteId);
         pst.setTimestamp(4, lastScanDate);
         for (String url : pages.keySet()) {
-            pst.setString(1, url);
             Timestamp foundDateTime = pages.get(url);
             if (foundDateTime == null) {
-                foundDateTime = new Timestamp(System.currentTimeMillis());
+                insertRowInPagesTable(url, siteId, null);
+                continue;
             }
-                pst.setTimestamp(3, foundDateTime);
-                pst.execute();
+            pst.setString(1, url);
+            pst.setTimestamp(3, foundDateTime);
+            pst.execute();
         }
         pst.close();
     }
