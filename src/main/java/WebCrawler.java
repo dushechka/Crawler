@@ -106,6 +106,7 @@ public class WebCrawler {
         for (int siteId : ratesDb.getSiteIds()) {
             Set<String> links;
             do {
+                System.out.println("Getting links for site with id=" + siteId);
                 links = ratesDb.getBunchOfUnscannedLinks(siteId, MAX_PAGES_PER_SCAN_CYCLE);
                 ratesDb.updateLastScanDatesByUrl(links, new Timestamp(System.currentTimeMillis()));
                 System.out.println("Preparing to scan pages");

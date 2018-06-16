@@ -113,14 +113,15 @@ public class RatesDatabase {
     public Set<String> getBunchOfUnscannedLinks(int siteId, int limit) throws SQLException {
         Set<String> links = new HashSet<>();
         PreparedStatement pst = conn.prepareStatement(
-                "SELECT URL FROM pages WHERE siteID = ? AND lastScanDate IS NULL LIMIT ?");
+                "SELECT URL FROM pages WHERE siteID = ? AND lastScanDate IS NULL " +
+                        "AND URL NOT LIKE '%sitemap%xml' LIMIT ?");
         pst.setInt(1, siteId);
         pst.setInt(2, limit);
         ResultSet rs = pst.executeQuery();
         while (rs.next()) {
             String link = rs.getString(PAGES_URL_COLUMN);
-            if (!(link.contains(SITEMAP) && link.contains(XML))
-                    && !(link.contains(ROBOTS_TXT_APPENDIX))) {
+            System.out.println(link);
+            if (!(link.contains(ROBOTS_TXT_APPENDIX))) {
                 links.add(link);
             }
         }
