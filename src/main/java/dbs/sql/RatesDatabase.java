@@ -305,6 +305,31 @@ public class RatesDatabase {
         pst.close();
     }
 
+    /**
+     *
+     * @param pages  page urls with foundDateTime field timestamps
+     * @param siteId
+     * @param lastScanDate
+     * @throws SQLException
+     */
+    public void insertRowsInPagesTable(Map<String, Timestamp> pages, int siteId,
+                                       @Nullable Timestamp lastScanDate) throws SQLException {
+        PreparedStatement pst = conn.prepareStatement(
+                "INSERT INTO pages (URL, siteID, foundDateTime, lastScanDate) VALUES (?, ?, ?, ?)");
+        pst.setInt(2, siteId);
+        pst.setTimestamp(4, lastScanDate);
+        for (String url : pages.keySet()) {
+            pst.setString(1, url);
+            Timestamp foundDateTime = pages.get(url);
+            if (foundDateTime == null) {
+                foundDateTime = new Timestamp(System.currentTimeMillis());
+            }
+                pst.setTimestamp(3, foundDateTime);
+                pst.execute();
+        }
+        pst.close();
+    }
+
     public void insertPersonsPageRanks(int personId, Map<String, Integer> pageRanks) throws SQLException {
         Map<String, Integer> pages = mapLinksToPageIds(pageRanks.keySet());
         PreparedStatement pst = conn.prepareStatement(

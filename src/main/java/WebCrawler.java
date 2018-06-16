@@ -84,7 +84,6 @@ public class WebCrawler {
         do {
             links = ratesDb.getUnscannedSitemapLinks();
             for (String link : links) {
-                System.out.println("Start working with sitemap: " + link);
                 if (ratesDb.getLastScanDate(link) == null) {
                     try {
                         ratesDb.updateLastScanDate(link, new Timestamp(System.currentTimeMillis()));
@@ -143,10 +142,9 @@ public class WebCrawler {
 
     /**
      *
-     * @param url   String in DB, by which we can get site ID
+     * @param url   Page url in DB, by which we can get site ID
      * @param links
      * @param db
-     * @throws MalformedURLException
      * @throws SQLException
      */
     private static void saveLinksToDb(String url, Set<String> links,
@@ -155,6 +153,32 @@ public class WebCrawler {
         System.out.println("Adding links to DB from " + url);
         if (siteId != null) {
             db.insertRowsInPagesTable(links, siteId, null);
+        }
+    }
+
+    /**
+     *
+     * @param url   page url in DB, by which we can get site ID
+     * @param links page urls with foundDateTime field timestamps
+     * @param db
+     * @throws SQLException
+     */
+    private static void saveLinksToDb(String url, Map<String, Timestamp> links,
+                                      RatesDatabase db) throws SQLException {
+        Integer siteId = db.getSiteIdByLink(url);
+        Set<String> withNoTimestams = new HashSet<>();
+        for (String link : links.keySet()) {
+            if (links.get(link) == null) {
+                withNoTimestams.add(link);
+            }
+        }
+        for (String link : withNoTimestams) {
+            links.remove(link);
+        }
+        System.out.println("Adding links to DB from " + url);
+        if (siteId != null) {
+            db.insertRowsInPagesTable(links, siteId, null);
+            db.insertRowsInPagesTable(withNoTimestams, siteId, null);
         }
     }
 
