@@ -137,7 +137,7 @@ public class WebCrawler {
             for (String url : dbPageRandks.keySet()) {
                 indexPageRanks.remove(url);
             }
-            ratesDb.insertPersonsPageRanks(personId, indexPageRanks);
+            ratesDb.insertPersonPageRanks(personId, indexPageRanks);
         }
     }
 
@@ -187,7 +187,7 @@ public class WebCrawler {
         Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(ratesDb, index);
         for (Integer personId : personPageRanks.keySet()) {
             Map<String, Integer> ranks = personPageRanks.get(personId);
-            ratesDb.insertPersonsPageRanks(personId, ranks);
+            ratesDb.insertPersonPageRanks(personId, ranks);
         }
     }
 
@@ -196,7 +196,7 @@ public class WebCrawler {
         Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(links, ratesDb, index);
         for (Integer personId : personPageRanks.keySet()) {
             Map<String, Integer> ranks = personPageRanks.get(personId);
-            ratesDb.insertPersonsPageRanks(personId, ranks);
+            ratesDb.insertPersonPageRanks(personId, ranks);
         }
     }
 
@@ -313,7 +313,11 @@ public class WebCrawler {
     public static void main(String[] args) {
         try {
             DBFactory dbFactory = new DBFactory();
-            parseInput(args, dbFactory);
+//            parseInput(args, dbFactory);
+            RatesDatabase rdb = dbFactory.getRatesDb();
+            Map<String, Integer> ppr = new HashMap<>();
+            ppr.put("https://www.bfm.ru/news/310802", 3);
+            rdb.insertPersonPageRanks(1, ppr);
         } catch (Exception exc) {
             exc.printStackTrace();
         }

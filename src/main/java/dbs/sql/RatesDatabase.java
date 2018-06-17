@@ -332,17 +332,50 @@ public class RatesDatabase {
         pst.close();
     }
 
-    public void insertPersonsPageRanks(int personId, Map<String, Integer> pageRanks) throws SQLException {
+    public void updatePersonPageRank(int personId, String link, Integer rank) throws SQLException{
+        Integer pageId = getPageId(link);
+        if (pageId != null) {
+            PreparedStatement pst = conn.prepareStatement(
+                    "UPDATE personspagerank SET Rank = ? WHERE PersonID = ? and PageID = ?");
+            pst.setInt(1, rank);
+            pst.setInt(2, personId);
+            pst.setInt(3, pageId);
+            pst.execute();
+            pst.close();
+        }
+    }
+
+    public void insertPersonPageRanks(int personId, Map<String, Integer> pageRanks) throws SQLException {
         Map<String, Integer> pages = mapLinksToPageIds(pageRanks.keySet());
         PreparedStatement pst = conn.prepareStatement(
                 "INSERT INTO personspagerank (PersonID,PageID,RANK) VALUES (?,?,?)");
         pst.setInt(1, personId);
         for (String url : pages.keySet()) {
-            pst.setInt(2, pages.get(url));
-            pst.setInt(3, pageRanks.get(url));
-            pst.execute();
+            try {
+                pst.setInt(2, pages.get(url));
+                pst.setInt(3, pageRanks.get(url));
+                pst.execute();
+            } catch (SQLIntegrityConstraintViolationException exc) {
+                exc.printStackTrace();
+                System.out.println("Updating person page rank instead of inserting new row.");
+                Integer rank = pageRanks.get(url);
+                System.out.printf("PersonID: %d; PageURL %s; Rank: %s.", personId, url, rank);;
+                updatePersonPageRank(personId, url, rank);
+            }
         }
         pst.close();
+    }
+
+    private @Nullable Integer getPageId(String link) throws SQLException {
+        Integer pageId = null;
+        PreparedStatement pst = conn.prepareStatement("SELECT ID FROM pages WHERE URL = ?");
+        pst.setString(1, link);
+        ResultSet rs = pst.executeQuery();
+        if (rs.next()) {
+            pageId = rs.getInt(ID_COLUMN);
+        }
+        pst.close();
+        return pageId;
     }
 
     private Map<String, Integer> mapLinksToPageIds(Set<String> links) throws SQLException {

@@ -120,14 +120,37 @@ public class JedisIndex implements Index {
 		}
 	}
 
+	@Override
+	public List<String> putTerms(TermContainer tc) {
+	    List<String> terms = new ArrayList<>();
+		System.out.println("Putting terms in index: ");
+		System.out.println(tc);
+//		Transaction t = jedis.multi();
+
+		String url = tc.getLabel();
+		String hashName = termCounterKey(url);
+
+		// if this page has already been indexed; delete the old hash
+		jedis.del(hashName);
+
+		// for each term, add an entry in the termcounter and a new
+		// member of the index
+		for (String term: tc.keySet()) {
+			Integer count = tc.get(term);
+			jedis.hset(hashName, term, count.toString());
+			jedis.sadd(urlSetKey(term), url);
+			terms.add(term);
+		}
+		return terms;
+	}
+
 	/**
 	 * Adds vocabulary of page to the index.
 	 *
 	 * @param tc
 	 * @return List of return values from Redis.
 	 */
-	@Override
-	public List<String> putTerms(TermContainer tc) {
+	public List<String> putTermsFaster(TermContainer tc) {
 		System.out.println("Putting terms in index: ");
 		System.out.println(tc);
 		Transaction t = jedis.multi();
