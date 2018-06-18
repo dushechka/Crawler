@@ -1,7 +1,7 @@
-package dbs.sql;
+package org.andreyfadeev.crawler.dbs.sql;
 
-import dbs.sql.orm.ModifiablePage;
-import dbs.sql.orm.Page;
+import org.andreyfadeev.crawler.dbs.sql.orm.ModifiablePage;
+import org.andreyfadeev.crawler.dbs.sql.orm.Page;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.*;
@@ -334,10 +334,10 @@ public class RatesDatabase {
                 pst.setTimestamp(3, foundDateTime);
                 pst.execute();
             } catch (SQLIntegrityConstraintViolationException exc) {
-                exc.printStackTrace();
                 System.out.println("Already have entry for this link: " + url);
                 System.out.println("Updating only foundDateTime in entry.");
                 updateFoundDateTime(url, foundDateTime);
+                exc.printStackTrace();
             }
         }
         pst.close();

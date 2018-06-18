@@ -1,4 +1,4 @@
-package dbs.redis;
+package org.andreyfadeev.crawler.dbs.redis;
 
 import redis.clients.jedis.Jedis;
 

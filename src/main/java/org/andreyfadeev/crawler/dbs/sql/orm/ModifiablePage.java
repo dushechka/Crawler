@@ -1,4 +1,4 @@
-package dbs.sql.orm;
+package org.andreyfadeev.crawler.dbs.sql.orm;
 
 import java.sql.Timestamp;
 

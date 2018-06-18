@@ -1,8 +1,8 @@
-package com.allendowney.thinkdast;
+package org.andreyfadeev.crawler;
 
-import com.allendowney.thinkdast.interfaces.Crawler;
-import com.allendowney.thinkdast.interfaces.Index;
-import com.allendowney.thinkdast.interfaces.TermContainer;
+import org.andreyfadeev.crawler.interfaces.Crawler;
+import org.andreyfadeev.crawler.interfaces.Index;
+import org.andreyfadeev.crawler.interfaces.TermContainer;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Element;

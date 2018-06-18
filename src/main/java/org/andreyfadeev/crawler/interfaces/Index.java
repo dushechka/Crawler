@@ -1,6 +1,5 @@
-package com.allendowney.thinkdast.interfaces;
+package org.andreyfadeev.crawler.interfaces;
 
-import com.allendowney.thinkdast.interfaces.TermContainer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;

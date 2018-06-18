@@ -1,4 +1,4 @@
-package com.allendowney.thinkdast;
+package org.andreyfadeev.crawler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.allendowney.thinkdast.interfaces.TermContainer;
+import org.andreyfadeev.crawler.interfaces.TermContainer;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;

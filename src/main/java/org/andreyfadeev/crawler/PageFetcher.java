@@ -1,4 +1,4 @@
-package com.allendowney.thinkdast;
+package org.andreyfadeev.crawler;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;

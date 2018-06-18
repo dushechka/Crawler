@@ -1,4 +1,4 @@
-package com.allendowney.thinkdast.interfaces;
+package org.andreyfadeev.crawler.interfaces;
 
 import java.io.IOException;
 import java.util.Set;

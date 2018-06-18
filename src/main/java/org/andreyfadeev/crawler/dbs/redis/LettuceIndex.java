@@ -1,7 +1,7 @@
-package dbs.redis;
+package org.andreyfadeev.crawler.dbs.redis;
 
-import com.allendowney.thinkdast.interfaces.Index;
-import com.allendowney.thinkdast.interfaces.TermContainer;
+import org.andreyfadeev.crawler.interfaces.Index;
+import org.andreyfadeev.crawler.interfaces.TermContainer;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 

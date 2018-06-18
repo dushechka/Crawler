@@ -1,7 +1,7 @@
-package dbs.redis;
+package org.andreyfadeev.crawler.dbs.redis;
 
-import com.allendowney.thinkdast.interfaces.Index;
-import com.allendowney.thinkdast.interfaces.TermContainer;
+import org.andreyfadeev.crawler.interfaces.Index;
+import org.andreyfadeev.crawler.interfaces.TermContainer;
 import org.jetbrains.annotations.Nullable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;

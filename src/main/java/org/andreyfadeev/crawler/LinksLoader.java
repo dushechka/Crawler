@@ -1,4 +1,4 @@
-package com.allendowney.thinkdast;
+package org.andreyfadeev.crawler;
 
 import com.panforge.robotstxt.RobotsTxt;
 import org.joda.time.DateTime;

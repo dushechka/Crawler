@@ -1,10 +1,9 @@
-package dbs;
+package org.andreyfadeev.crawler.dbs;
 
-import com.allendowney.thinkdast.interfaces.Index;
-import dbs.redis.JedisIndex;
-import dbs.redis.LettuceIndex;
-import dbs.sql.RatesDatabase;
-import io.lettuce.core.ClientOptions;
+import org.andreyfadeev.crawler.interfaces.Index;
+import org.andreyfadeev.crawler.dbs.redis.JedisIndex;
+import org.andreyfadeev.crawler.dbs.redis.LettuceIndex;
+import org.andreyfadeev.crawler.dbs.sql.RatesDatabase;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import redis.clients.jedis.Jedis;

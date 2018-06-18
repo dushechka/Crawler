@@ -1,10 +1,12 @@
-import com.allendowney.thinkdast.HtmlCrawler;
-import com.allendowney.thinkdast.LinksLoader;
-import com.allendowney.thinkdast.interfaces.Crawler;
-import com.allendowney.thinkdast.interfaces.Index;
-import dbs.DBFactory;
-import dbs.sql.RatesDatabase;
-import dbs.sql.orm.Page;
+package org.andreyfadeev.crawler;
+
+import org.andreyfadeev.crawler.HtmlCrawler;
+import org.andreyfadeev.crawler.LinksLoader;
+import org.andreyfadeev.crawler.interfaces.Crawler;
+import org.andreyfadeev.crawler.interfaces.Index;
+import org.andreyfadeev.crawler.dbs.DBFactory;
+import org.andreyfadeev.crawler.dbs.sql.RatesDatabase;
+import org.andreyfadeev.crawler.dbs.sql.orm.Page;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -15,7 +17,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.allendowney.thinkdast.LinksLoader.ROBOTS_TXT_APPENDIX;
+import static org.andreyfadeev.crawler.LinksLoader.ROBOTS_TXT_APPENDIX;
 
 public class WebCrawler {
 
@@ -168,19 +170,9 @@ public class WebCrawler {
     private static void saveLinksToDb(String url, Map<String, Timestamp> links,
                                       RatesDatabase db) throws SQLException {
         Integer siteId = db.getSiteIdByLink(url);
-//        Set<String> withNoTimestams = new HashSet<>();
-//        for (String link : links.keySet()) {
-//            if (links.get(link) == null) {
-//                withNoTimestams.add(link);
-//            }
-//        }
-//        for (String link : withNoTimestams) {
-//            links.remove(link);
-//        }
         System.out.println("Adding links to DB from " + url);
         if (siteId != null) {
             db.insertRowsInPagesTable(links, siteId, null);
-//            db.insertRowsInPagesTable(withNoTimestams, siteId, null);
         }
     }
 
@@ -255,7 +247,7 @@ public class WebCrawler {
 
     private static void parseInput(String[] args, DBFactory dbFactory) throws Exception {
         if (args.length == 0) {
-            System.out.println("Usage: java Crawler -<param>");
+            System.out.println("Usage: java Crawler -<param>\n");
             System.out.println("List of available parameters:");
             System.out.println("-rdx - reindex persons page ranks from previously saved vocabularies;");
             System.out.println("-irl - insert links to robots.txt in database for found new sites;");
