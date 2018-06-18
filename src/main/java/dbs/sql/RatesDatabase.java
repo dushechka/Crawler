@@ -289,7 +289,11 @@ public class RatesDatabase {
         stmt.setString(1, url);
         stmt.setInt(2, siteId);
         stmt.setTimestamp(3, lastScanDate);
-        stmt.execute();
+        try {
+            stmt.execute();
+        } catch (SQLIntegrityConstraintViolationException exc) {
+            exc.printStackTrace();
+        }
         stmt.close();
     }
 
@@ -300,8 +304,12 @@ public class RatesDatabase {
         pst.setInt(2, siteId);
         pst.setTimestamp(3, lastScanDate);
         for (String url : urls) {
-            pst.setString(1, url);
-            pst.execute();
+            try {
+                pst.setString(1, url);
+                pst.execute();
+            } catch (SQLIntegrityConstraintViolationException exc) {
+                exc.printStackTrace();
+            }
         }
         pst.close();
     }
@@ -321,14 +329,26 @@ public class RatesDatabase {
         pst.setTimestamp(4, lastScanDate);
         for (String url : pages.keySet()) {
             Timestamp foundDateTime = pages.get(url);
-            if (foundDateTime == null) {
-                insertRowInPagesTable(url, siteId, null);
-                continue;
+            try {
+                pst.setString(1, url);
+                pst.setTimestamp(3, foundDateTime);
+                pst.execute();
+            } catch (SQLIntegrityConstraintViolationException exc) {
+                exc.printStackTrace();
+                System.out.println("Already have entry for this link: " + url);
+                System.out.println("Updating only foundDateTime in entry.");
+                updateFoundDateTime(url, foundDateTime);
             }
-            pst.setString(1, url);
-            pst.setTimestamp(3, foundDateTime);
-            pst.execute();
         }
+        pst.close();
+    }
+
+    public void updateFoundDateTime(String url, @Nullable Timestamp foundDateTime) throws SQLException {
+        PreparedStatement pst = conn.prepareStatement(
+                "UPDATE pages SET foundDateTime = ? WHERE URL = ?");
+        pst.setTimestamp(1, foundDateTime);
+        pst.setString(2, url);
+        pst.execute();
         pst.close();
     }
 

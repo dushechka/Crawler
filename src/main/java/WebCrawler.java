@@ -40,6 +40,7 @@ public class WebCrawler {
                         System.out.println("Adding robots.txt link for " + address);
                         String robotsAddress = address + ROBOTS_TXT_APPENDIX;
                         ratesDb.insertRowInPagesTable(robotsAddress, page.getSiteId(), null);
+                        ratesDb.updateLastScanDate(page.getiD(), null);
                     }
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
@@ -313,11 +314,7 @@ public class WebCrawler {
     public static void main(String[] args) {
         try {
             DBFactory dbFactory = new DBFactory();
-//            parseInput(args, dbFactory);
-            RatesDatabase rdb = dbFactory.getRatesDb();
-            Map<String, Integer> ppr = new HashMap<>();
-            ppr.put("https://www.bfm.ru/news/310802", 3);
-            rdb.insertPersonPageRanks(1, ppr);
+            parseInput(args, dbFactory);
         } catch (Exception exc) {
             exc.printStackTrace();
         }
