@@ -22,9 +22,9 @@ public class RatesDatabase {
     private static final String SITEMAP = "sitemap";
     private static final String XML = "xml";
     private static final String NAME_COLUMN = "name";
-    public static final String PERSON_ID_COLUMN = "PersonID";
-    public static final String PAGE_ID_COLUMN = "PageID";
-    public static final String RANK_COLUMN = "Rank";
+    private static final String PERSON_ID_COLUMN = "PersonID";
+    private static final String PAGE_ID_COLUMN = "PageID";
+    private static final String RANK_COLUMN = "Rank";
     private final Connection conn;
 
     public RatesDatabase(Connection conn) {

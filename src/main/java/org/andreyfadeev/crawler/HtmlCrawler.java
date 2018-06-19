@@ -36,7 +36,7 @@ public class HtmlCrawler implements Crawler {
 		System.out.println("Crawling " + link);
 		URL url = new URL(link);
 		String content = ArticleExtractor.INSTANCE.getText(url);
-		if (content.isEmpty() || content == null) {
+		if (content.isEmpty()) {
 			System.out.println("Empty content");
 			System.out.println(content);
 		} else {

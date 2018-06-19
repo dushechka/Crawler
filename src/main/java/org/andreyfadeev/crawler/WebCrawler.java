@@ -1,5 +1,6 @@
 package org.andreyfadeev.crawler;
 
+import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import org.andreyfadeev.crawler.HtmlCrawler;
 import org.andreyfadeev.crawler.LinksLoader;
 import org.andreyfadeev.crawler.interfaces.Crawler;
@@ -10,6 +11,7 @@ import org.andreyfadeev.crawler.dbs.sql.orm.Page;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -305,8 +307,10 @@ public class WebCrawler {
 
     public static void main(String[] args) {
         try {
-            DBFactory dbFactory = new DBFactory();
-            parseInput(args, dbFactory);
+//            DBFactory dbFactory = new DBFactory();
+//            parseInput(args, dbFactory);
+            URL url = new URL("https://lenta.ru/news/2018/05/24/putin_vs_trump/");
+            System.out.println(ArticleExtractor.INSTANCE.getText(url));
         } catch (Exception exc) {
             exc.printStackTrace();
         }

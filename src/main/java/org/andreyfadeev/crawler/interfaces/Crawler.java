@@ -21,6 +21,8 @@ public interface Crawler {
     /**
      * Indexes given url.
      *
+     * @param url   url to be indexed
+     * @param index index to save vocabulary from page
      * @return	URL of the page indexed.
      * @throws IOException
      */
