@@ -1,5 +1,6 @@
 package org.andreyfadeev.crawler;
 
+import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import org.andreyfadeev.crawler.dbs.redis.LettuceIndex;
 import org.andreyfadeev.crawler.interfaces.Crawler;
 import org.andreyfadeev.crawler.interfaces.Index;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -26,6 +28,11 @@ public class WebCrawler {
     public static final String MYSQL_PROPS_FILENAME = "/mysql_props.txt";
     public static final String REDIS_PROPS_FILENAME = "/redis_props.txt";
     private static int MAX_PAGES_PER_SCAN_CYCLE = 10;
+    private final DBFactory dbFactory;
+
+    public WebCrawler(DBFactory dbFactory) {
+        this.dbFactory = dbFactory;
+    }
 
     /**
      * Inserts links to the robots.txt file
@@ -251,7 +258,7 @@ public class WebCrawler {
         }
     }
 
-    private void parseInput(String[] args, DBFactory dbFactory) throws Exception {
+    private void parseInput(String[] args) throws Exception {
         if (args.length == 0) {
             System.out.println("Usage: java Crawler -<param>\n");
             System.out.println("List of available parameters:");
@@ -294,13 +301,13 @@ public class WebCrawler {
                 if (arg.contains("-pul"))
                     parseUnscannedPages(dbFactory.getRatesDb(), dbFactory.getLettuceIndex());
                 if (arg.contains("-all")) {
-                    runWholeProgramCycle(dbFactory);
+                    runWholeProgramCycle();
                 }
             }
         }
     }
 
-    private void runWholeProgramCycle(DBFactory dbFactory) throws Exception {
+    private void runWholeProgramCycle() throws Exception {
         RatesDatabase rdb = dbFactory.getRatesDb();
         reindexPageRanks(rdb, dbFactory.getLettuceIndex());
         insertLinksToRobotsPages(rdb);
@@ -335,12 +342,10 @@ public class WebCrawler {
     public static void main(String[] args) {
         try {
             DBFactory dbFactory = new DBFactory();
-            WebCrawler wc = new WebCrawler();
+            WebCrawler wc = new WebCrawler(dbFactory);
             wc.setProperties();
-//            Index index = dbFactory.getLettuceIndex();
-//            index.isIndexed("https://lenta.ru/news/2016/11/06/monte/");
-            wc.parseInput(args, dbFactory);
-//            URL url = new URL("https://lenta.ru/news/2018/05/24/putin_vs_trump/");
+            wc.parseInput(args);
+//            URL url = new URL("https://www.pravda.ru/news/society/20-06-2018/1386876-reforma-0/");
 //            System.out.println(ArticleExtractor.INSTANCE.getText(url));
             dbFactory.close();
         } catch (Exception exc) {
