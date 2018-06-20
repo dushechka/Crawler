@@ -28,6 +28,7 @@ public class WebCrawler {
 
     public static final String MYSQL_PROPS_FILENAME = "/mysql_props.txt";
     public static final String REDIS_PROPS_FILENAME = "/redis_props.txt";
+    public static final int PAGES_BEFORE_REINDEX = 1000;
     private static int MAX_PAGES_PER_SCAN_CYCLE = 10;
     private final DBFactory dbFactory;
 
@@ -118,10 +119,22 @@ public class WebCrawler {
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
         Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
         Crawler crawler = new HtmlCrawler();
+        int cyclesPassed = 0;
         int errCounter = 0;
         for (int siteId : ratesDb.getSiteIds()) {
             Set<String> links;
             do {
+                if ((cyclesPassed * MAX_PAGES_PER_SCAN_CYCLE) > PAGES_BEFORE_REINDEX) {
+                    cyclesPassed = 0;
+                    int kwSize = keywords.size();
+                    System.out.println("\n KWSIZE: " + kwSize);
+                    keywords = ratesDb.getPersonsWithKeywords();
+                    System.out.println("NEW_KWSIZE: " + keywords.size());
+                    System.out.println();
+                    if (keywords.size() > kwSize) {
+                        reindexPageRanks(ratesDb, index);
+                    }
+                }
                 System.out.println("\nGetting links for site with id=" + siteId);
                 links = ratesDb.getBunchOfUnscannedLinks(siteId, MAX_PAGES_PER_SCAN_CYCLE);
                 ratesDb.updateLastScanDatesByUrl(links, new Timestamp(System.currentTimeMillis()));
@@ -139,9 +152,9 @@ public class WebCrawler {
                         throw new Exception(exc);
                     }
                 }
+                cyclesPassed++;
             } while (!links.isEmpty());
         }
-        index.close();
     }
 
     private void updatePersonsPageRanks(Map<Integer, Set<String>> keywords,
@@ -172,6 +185,7 @@ public class WebCrawler {
     }
 
     private void reindexPageRanks(RatesDatabase ratesDb, Index index) throws SQLException{
+        System.out.println("\n*** STARTING REINDEXING ***");
         Map<Integer, Map<String, Integer>> personsPageRanks = ratesDb.getPersonsPageRanks();
         Map<Integer, Map<String, Integer>> indexPpr = getPageRanksFromIndex(ratesDb, index);
         for (Integer personId : personsPageRanks.keySet()) {
@@ -182,7 +196,6 @@ public class WebCrawler {
             }
             ratesDb.insertPersonPageRanks(personId, indexPageRanks);
         }
-        index.close();
     }
 
     /**

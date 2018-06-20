@@ -25,6 +25,8 @@ public class DBFactory {
     private RatesDatabase ratesDatabase;
     private RedisClient lettuceClient;
     private JedisPool jedisPool;
+    private LettuceIndex lettuceIndex;
+    private JedisIndex jedisIndex;
 
     public RatesDatabase getRatesDb() throws SQLException {
             if (ratesDatabase == null) {
@@ -36,15 +38,16 @@ public class DBFactory {
     }
 
     public Index getJedisIndex() {
-        if (jedisPool == null) {
+        if (jedisIndex == null) {
             jedisPool = new JedisPool(REDIS_HOST, REDIS_PORT);
+            jedisIndex = new JedisIndex(jedisPool.getResource());
         }
 
-        return new JedisIndex(jedisPool.getResource());
+        return jedisIndex;
     }
 
     public Index getLettuceIndex() {
-        if (lettuceClient == null) {
+        if (lettuceIndex == null) {
             RedisURI redisURI = RedisURI.builder()
                                         .redis(REDIS_HOST, REDIS_PORT)
                                         .withTimeout(Duration.ofMillis(REDIS_TIMEOUT))
@@ -52,9 +55,10 @@ public class DBFactory {
             lettuceClient = RedisClient.create(redisURI);
 //            String ltString = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0";
 //            lettuceClient = RedisClient.create(ltString);
+            lettuceIndex = new LettuceIndex(lettuceClient.connect());
         }
 
-        return new LettuceIndex(lettuceClient.connect());
+        return lettuceIndex;
     }
 
     public Index getIndex() {
