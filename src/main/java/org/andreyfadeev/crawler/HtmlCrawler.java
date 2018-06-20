@@ -8,6 +8,7 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
@@ -65,7 +66,7 @@ public class HtmlCrawler implements Crawler {
 		    try {
 		        crawlPage(url, index);
 				errCounter = 0;
-			} catch (HttpStatusException e) {
+			} catch (HttpStatusException | FileNotFoundException e) {
 				unavailable.add(url);
 				e.printStackTrace();
 			} catch (Exception exc) {
