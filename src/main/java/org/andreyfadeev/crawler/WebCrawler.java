@@ -1,18 +1,16 @@
 package org.andreyfadeev.crawler;
 
-import de.l3s.boilerpipe.extractors.ArticleExtractor;
-import org.andreyfadeev.crawler.HtmlCrawler;
-import org.andreyfadeev.crawler.LinksLoader;
-import org.andreyfadeev.crawler.dbs.redis.JedisIndex;
 import org.andreyfadeev.crawler.interfaces.Crawler;
 import org.andreyfadeev.crawler.interfaces.Index;
 import org.andreyfadeev.crawler.dbs.DBFactory;
 import org.andreyfadeev.crawler.dbs.sql.RatesDatabase;
 import org.andreyfadeev.crawler.dbs.sql.orm.Page;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -24,6 +22,8 @@ import static org.andreyfadeev.crawler.LinksLoader.ROBOTS_TXT_APPENDIX;
 
 public class WebCrawler {
 
+    public static final String MYSQL_PROPS_FILENAME = "/mysql_props.txt";
+    public static final String REDIS_PROPS_FILENAME = "/redis_props.txt";
     private static int MAX_PAGES_PER_SCAN_CYCLE = 10;
 
     /**
@@ -34,7 +34,7 @@ public class WebCrawler {
      * @throws SQLException if database can't
      *                      execute some of the queries.
      */
-    private static void insertLinksToRobotsPages(RatesDatabase ratesDb) throws SQLException {
+    private void insertLinksToRobotsPages(RatesDatabase ratesDb) throws SQLException {
         Set<Page> pages = selectUnscannedPages(ratesDb.getSinglePages());
         for (Page page : pages) {
             if (ratesDb.getLastScanDate(page.getUrl()) == null) {
@@ -57,7 +57,7 @@ public class WebCrawler {
         }
     }
 
-    private static Set<Page> selectUnscannedPages(Set<Page> pages) {
+    private Set<Page> selectUnscannedPages(Set<Page> pages) {
         Set<Page> unscanned = new HashSet<>();
         for (Page page : pages) {
             if (page.getLastScanDate() == null) {
@@ -67,7 +67,7 @@ public class WebCrawler {
         return unscanned;
     }
 
-    private static void fetchLinksFromRobotsTxt(RatesDatabase ratesDb) throws SQLException {
+    private void fetchLinksFromRobotsTxt(RatesDatabase ratesDb) throws SQLException {
         Set<String> robotsTxtLinks = ratesDb.getUnscannedRobotsTxtLinks();
         LinksLoader ln = new LinksLoader();
         for (String url : robotsTxtLinks) {
@@ -84,7 +84,7 @@ public class WebCrawler {
         }
     }
 
-    private static void fetchLinksFromSitmaps(RatesDatabase ratesDb) throws SQLException {
+    private void fetchLinksFromSitmaps(RatesDatabase ratesDb) throws SQLException {
         LinksLoader ln = new LinksLoader();
         Set<String> links;
         do {
@@ -104,7 +104,7 @@ public class WebCrawler {
         } while (!links.isEmpty());
     }
 
-    private static void parseUnscannedPages(RatesDatabase ratesDb, Index index) throws Exception {
+    private void parseUnscannedPages(RatesDatabase ratesDb, Index index) throws Exception {
         System.out.println("Maximum pages to scan per cycle: " + MAX_PAGES_PER_SCAN_CYCLE);
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
         Crawler crawler = new HtmlCrawler();
@@ -134,7 +134,7 @@ public class WebCrawler {
         }
     }
 
-    private static void reindexPageRanks(RatesDatabase ratesDb, Index index) throws SQLException{
+    private void reindexPageRanks(RatesDatabase ratesDb, Index index) throws SQLException{
         Map<Integer, Map<String, Integer>> personsPageRanks = ratesDb.getPersonsPageRanks();
         Map<Integer, Map<String, Integer>> indexPpr = getPageRanksFromIndex(ratesDb, index);
         for (Integer personId : personsPageRanks.keySet()) {
@@ -154,7 +154,7 @@ public class WebCrawler {
      * @param db
      * @throws SQLException
      */
-    private static void saveLinksToDb(String url, Set<String> links,
+    private void saveLinksToDb(String url, Set<String> links,
                                          RatesDatabase db) throws SQLException {
         Integer siteId = db.getSiteIdByLink(url);
         System.out.println("Adding links to DB from " + url);
@@ -170,7 +170,7 @@ public class WebCrawler {
      * @param db
      * @throws SQLException
      */
-    private static void saveLinksToDb(String url, Map<String, Timestamp> links,
+    private void saveLinksToDb(String url, Map<String, Timestamp> links,
                                       RatesDatabase db) throws SQLException {
         Integer siteId = db.getSiteIdByLink(url);
         System.out.println("Adding links to DB from " + url);
@@ -179,7 +179,7 @@ public class WebCrawler {
         }
     }
 
-    private static void updateAllPersonsPageRanks(RatesDatabase ratesDb, Index index) throws SQLException {
+    private void updateAllPersonsPageRanks(RatesDatabase ratesDb, Index index) throws SQLException {
         Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(ratesDb, index);
         for (Integer personId : personPageRanks.keySet()) {
             Map<String, Integer> ranks = personPageRanks.get(personId);
@@ -187,7 +187,7 @@ public class WebCrawler {
         }
     }
 
-    private static void updatePersonsPageRanks(Set<String> links,
+    private void updatePersonsPageRanks(Set<String> links,
                                                RatesDatabase ratesDb, Index index) throws SQLException {
         Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(links, ratesDb, index);
         for (Integer personId : personPageRanks.keySet()) {
@@ -196,7 +196,7 @@ public class WebCrawler {
         }
     }
 
-    private static Map<Integer, Map<String, Integer>> getPageRanksFromIndex(
+    private Map<Integer, Map<String, Integer>> getPageRanksFromIndex(
             Set<String> links, RatesDatabase ratesDb, Index index) throws SQLException {
         Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
         Map<Integer, Map<String, Integer>> pageRanks = new HashMap<>();
@@ -219,7 +219,7 @@ public class WebCrawler {
         return pageRanks;
     }
 
-    private static Map<Integer, Map<String, Integer>> getPageRanksFromIndex(
+    private Map<Integer, Map<String, Integer>> getPageRanksFromIndex(
                         RatesDatabase ratesDb, Index index) throws SQLException {
         Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
         Map<Integer, Map<String, Integer>> pageRanks = new HashMap<>();
@@ -240,7 +240,7 @@ public class WebCrawler {
         return pageRanks;
     }
 
-    private static void putOrUpdate(Map<String, Integer> source, Map<String, Integer> target) {
+    private void putOrUpdate(Map<String, Integer> source, Map<String, Integer> target) {
         for (Map.Entry<String, Integer> entry : source.entrySet()) {
             String key = entry.getKey();
             Integer value = entry.getValue();
@@ -248,7 +248,7 @@ public class WebCrawler {
         }
     }
 
-    private static void parseInput(String[] args, DBFactory dbFactory) throws Exception {
+    private void parseInput(String[] args, DBFactory dbFactory) throws Exception {
         if (args.length == 0) {
             System.out.println("Usage: java Crawler -<param>\n");
             System.out.println("List of available parameters:");
@@ -297,7 +297,7 @@ public class WebCrawler {
         }
     }
 
-    private static void runWholeProgramCycle(DBFactory dbFactory) throws Exception {
+    private void runWholeProgramCycle(DBFactory dbFactory) throws Exception {
         RatesDatabase rdb = dbFactory.getRatesDb();
         reindexPageRanks(rdb, dbFactory.getJedisIndex());
         insertLinksToRobotsPages(rdb);
@@ -306,10 +306,35 @@ public class WebCrawler {
         parseUnscannedPages(rdb, dbFactory.getJedisIndex());
     }
 
+    private void setProperties() throws IOException{
+        String filename = MYSQL_PROPS_FILENAME;
+        InputStream in = getClass().getResourceAsStream(MYSQL_PROPS_FILENAME);
+        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+
+        try {
+            DBFactory.MYSQL_ADRESS = br.readLine();
+            DBFactory.MYSQL_USERNAME = br.readLine();
+            DBFactory.MYSQL_PASSWORD = br.readLine();
+            br.close();
+
+            filename = REDIS_PROPS_FILENAME;
+            in = getClass().getResourceAsStream(filename);
+            br = new BufferedReader(new InputStreamReader(in));
+            DBFactory.REDIS_HOST = br.readLine();
+            DBFactory.REDIS_PORT = Integer.parseInt(br.readLine());
+            br.close();
+        } catch (IOException exc) {
+            System.out.println("Can't read file! Filename: " + filename);
+            throw exc;
+        }
+    }
+
     public static void main(String[] args) {
         try {
             DBFactory dbFactory = new DBFactory();
-            parseInput(args, dbFactory);
+            WebCrawler wc = new WebCrawler();
+            wc.setProperties();
+            wc.parseInput(args, dbFactory);
 //            URL url = new URL("https://lenta.ru/news/2018/05/24/putin_vs_trump/");
 //            System.out.println(ArticleExtractor.INSTANCE.getText(url));
         } catch (Exception exc) {

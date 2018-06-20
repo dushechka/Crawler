@@ -1,3 +1,2 @@
-redis.host=192.168.56.101
-redis.port=6379
-redis.timeout=60000
+192.168.56.101
+6379

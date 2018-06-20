@@ -14,20 +14,21 @@ import java.sql.SQLException;
 import java.time.Duration;
 
 public class DBFactory {
-    private static final String DB_ADRESS = "jdbc:mysql://localhost:3306/searchandratewords";
-    private static final String USER_NAME = "crawler";
-    private static final String PASSWORD = "123";
-    private static final String REDIS_HOST = "192.168.56.101";
-    private static final int REDIS_PORT = 6379;
-    private static final String COLON = ":";
+    private static final String JDBC_PREFIX = "jdbc:";
+    public static String MYSQL_ADRESS;
+    public static String MYSQL_USERNAME;
+    public static String MYSQL_PASSWORD;
+    public static String REDIS_HOST;
+    public static Integer REDIS_PORT;
     public static int REDIS_TIMEOUT = 60000;
-    private RatesDatabase ratesDatabase = null;
-    private RedisClient lettuceClient = null;
-    private Index jedisIndex = null;
+    private RatesDatabase ratesDatabase;
+    private RedisClient lettuceClient;
+    private Index jedisIndex;
 
     public RatesDatabase getRatesDb() throws SQLException {
             if (ratesDatabase == null) {
-                Connection conn = DriverManager.getConnection(DB_ADRESS, USER_NAME, PASSWORD);
+                Connection conn = DriverManager.getConnection(
+                        JDBC_PREFIX + MYSQL_ADRESS, MYSQL_USERNAME, MYSQL_PASSWORD);
                 ratesDatabase = new RatesDatabase(conn);
             }
         return ratesDatabase;
