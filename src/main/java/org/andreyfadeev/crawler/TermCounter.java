@@ -157,6 +157,8 @@ public class TermCounter implements TermContainer {
 			sb.append(count);
 			sb.append("]");
 		}
+		sb.append("\nTotal count of words = ");
+		sb.append(map.size());
 		sb.append("\nTotal of all counts = ");
 		sb.append(size());
 		sb.append(LINE_SEPARATOR);

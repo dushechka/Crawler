@@ -57,6 +57,10 @@ public class DBFactory {
         return new LettuceIndex(lettuceClient.connect());
     }
 
+    public Index getIndex() {
+        return getLettuceIndex();
+    }
+
     public void close() {
         if (lettuceClient != null) {
             lettuceClient.shutdown();

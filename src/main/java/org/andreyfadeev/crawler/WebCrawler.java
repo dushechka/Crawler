@@ -291,7 +291,7 @@ public class WebCrawler {
 
             for (String arg : args) {
                 if (arg.contains("-rdx"))
-                    reindexPageRanks(dbFactory.getRatesDb(), dbFactory.getLettuceIndex());
+                    reindexPageRanks(dbFactory.getRatesDb(), dbFactory.getIndex());
                 if (arg.contains("-irl"))
                     insertLinksToRobotsPages(dbFactory.getRatesDb());
                 if (arg.contains("-frl"))
@@ -299,7 +299,7 @@ public class WebCrawler {
                 if (arg.contains("-fsl"))
                     fetchLinksFromSitmaps(dbFactory.getRatesDb());
                 if (arg.contains("-pul"))
-                    parseUnscannedPages(dbFactory.getRatesDb(), dbFactory.getLettuceIndex());
+                    parseUnscannedPages(dbFactory.getRatesDb(), dbFactory.getIndex());
                 if (arg.contains("-all")) {
                     runWholeProgramCycle();
                 }
@@ -309,11 +309,11 @@ public class WebCrawler {
 
     private void runWholeProgramCycle() throws Exception {
         RatesDatabase rdb = dbFactory.getRatesDb();
-        reindexPageRanks(rdb, dbFactory.getLettuceIndex());
+        reindexPageRanks(rdb, dbFactory.getIndex());
         insertLinksToRobotsPages(rdb);
         fetchLinksFromRobotsTxt(rdb);
         fetchLinksFromSitmaps(rdb);
-        parseUnscannedPages(rdb, dbFactory.getLettuceIndex());
+        parseUnscannedPages(rdb, dbFactory.getIndex());
     }
 
     private void setProperties() throws IOException{
