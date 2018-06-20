@@ -3,6 +3,7 @@ package org.andreyfadeev.crawler;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import org.andreyfadeev.crawler.HtmlCrawler;
 import org.andreyfadeev.crawler.LinksLoader;
+import org.andreyfadeev.crawler.dbs.redis.JedisIndex;
 import org.andreyfadeev.crawler.interfaces.Crawler;
 import org.andreyfadeev.crawler.interfaces.Index;
 import org.andreyfadeev.crawler.dbs.DBFactory;
@@ -307,10 +308,10 @@ public class WebCrawler {
 
     public static void main(String[] args) {
         try {
-//            DBFactory dbFactory = new DBFactory();
-//            parseInput(args, dbFactory);
-            URL url = new URL("https://lenta.ru/news/2018/05/24/putin_vs_trump/");
-            System.out.println(ArticleExtractor.INSTANCE.getText(url));
+            DBFactory dbFactory = new DBFactory();
+            parseInput(args, dbFactory);
+//            URL url = new URL("https://lenta.ru/news/2018/05/24/putin_vs_trump/");
+//            System.out.println(ArticleExtractor.INSTANCE.getText(url));
         } catch (Exception exc) {
             exc.printStackTrace();
         }

@@ -1,0 +1,6 @@
+mysql.host=localhost
+mysql.port=3306
+mysql.dbname=searchandratewords
+mysql.username=crawler
+mysql.password=123
+	
