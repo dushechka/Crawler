@@ -4,6 +4,7 @@ import org.andreyfadeev.crawler.interfaces.Crawler;
 import org.andreyfadeev.crawler.interfaces.Index;
 import org.andreyfadeev.crawler.interfaces.TermContainer;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
+import org.jetbrains.annotations.Nullable;
 import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -33,19 +34,20 @@ public class HtmlCrawler implements Crawler {
 	}
 
 	@Override
-	public String crawlPage(String link, Index index) throws Exception {
+	public @Nullable TermContainer crawlPage(String link, Index index) throws Exception {
 		System.out.println("Crawling " + link);
 		URL url = new URL(link);
 		String content = ArticleExtractor.INSTANCE.getText(url);
 		if (content.isEmpty()) {
 			System.out.println("Empty content");
 			System.out.println(content);
+			return null;
 		} else {
 			System.out.println(content);
 			TermContainer tc = new TermCounter(link, content);
 			index.putTerms(tc);
+			return tc;
 		}
-		return link;
 	}
 
 	/**
@@ -59,18 +61,16 @@ public class HtmlCrawler implements Crawler {
 	 * 						consistent IO exceptions.
 	 */
 	@Override
-	public Set<String> crawlPages(final Set<String> links, Index index) throws Exception {
-		Set<String> unavailable = new HashSet<>();
+	public Set<TermContainer> crawlPages(final Set<String> links, Index index) throws Exception {
+		Set<TermContainer> parsed = new HashSet<>();
 		int errCounter = 0;
 		for (String url : links) {
 		    try {
-		        crawlPage(url, index);
+		        parsed.add(crawlPage(url, index));
 				errCounter = 0;
 			} catch (HttpStatusException | FileNotFoundException e) {
-				unavailable.add(url);
 				e.printStackTrace();
 			} catch (Exception exc) {
-		        unavailable.add(url);
 		    	errCounter++;
 		    	exc.printStackTrace();
 		    	if (errCounter > 7) {
@@ -78,7 +78,7 @@ public class HtmlCrawler implements Crawler {
 				}
 			}
 		}
-		return unavailable;
+		return parsed;
 	}
 
 	private String crawlFromQueue() throws IOException {
