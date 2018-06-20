@@ -133,6 +133,7 @@ public class WebCrawler {
                 }
             } while (!links.isEmpty());
         }
+        index.close();
     }
 
     private void reindexPageRanks(RatesDatabase ratesDb, Index index) throws SQLException{
@@ -146,6 +147,7 @@ public class WebCrawler {
             }
             ratesDb.insertPersonPageRanks(personId, indexPageRanks);
         }
+        index.close();
     }
 
     /**
@@ -282,7 +284,7 @@ public class WebCrawler {
 
             for (String arg : args) {
                 if (arg.contains("-rdx"))
-                    reindexPageRanks(dbFactory.getRatesDb(), dbFactory.getJedisIndex());
+                    reindexPageRanks(dbFactory.getRatesDb(), dbFactory.getLettuceIndex());
                 if (arg.contains("-irl"))
                     insertLinksToRobotsPages(dbFactory.getRatesDb());
                 if (arg.contains("-frl"))
@@ -290,7 +292,7 @@ public class WebCrawler {
                 if (arg.contains("-fsl"))
                     fetchLinksFromSitmaps(dbFactory.getRatesDb());
                 if (arg.contains("-pul"))
-                    parseUnscannedPages(dbFactory.getRatesDb(), dbFactory.getJedisIndex());
+                    parseUnscannedPages(dbFactory.getRatesDb(), dbFactory.getLettuceIndex());
                 if (arg.contains("-all")) {
                     runWholeProgramCycle(dbFactory);
                 }
@@ -300,11 +302,11 @@ public class WebCrawler {
 
     private void runWholeProgramCycle(DBFactory dbFactory) throws Exception {
         RatesDatabase rdb = dbFactory.getRatesDb();
-        reindexPageRanks(rdb, dbFactory.getJedisIndex());
+        reindexPageRanks(rdb, dbFactory.getLettuceIndex());
         insertLinksToRobotsPages(rdb);
         fetchLinksFromRobotsTxt(rdb);
         fetchLinksFromSitmaps(rdb);
-        parseUnscannedPages(rdb, dbFactory.getJedisIndex());
+        parseUnscannedPages(rdb, dbFactory.getLettuceIndex());
     }
 
     private void setProperties() throws IOException{
@@ -340,6 +342,7 @@ public class WebCrawler {
             wc.parseInput(args, dbFactory);
 //            URL url = new URL("https://lenta.ru/news/2018/05/24/putin_vs_trump/");
 //            System.out.println(ArticleExtractor.INSTANCE.getText(url));
+            dbFactory.close();
         } catch (Exception exc) {
             exc.printStackTrace();
         }
