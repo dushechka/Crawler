@@ -7,6 +7,7 @@ import org.andreyfadeev.crawler.dbs.sql.RatesDatabase;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -23,6 +24,7 @@ public class DBFactory {
     public static int REDIS_TIMEOUT = 60000;
     private RatesDatabase ratesDatabase;
     private RedisClient lettuceClient;
+    private JedisPool jedisPool;
     private Index jedisIndex;
 
     public RatesDatabase getRatesDb() throws SQLException {
@@ -36,7 +38,8 @@ public class DBFactory {
 
     public Index getJedisIndex() {
         if (jedisIndex == null) {
-            jedisIndex = new JedisIndex(new Jedis(REDIS_HOST, REDIS_PORT));
+            jedisPool = new JedisPool(REDIS_HOST, REDIS_PORT);
+            jedisIndex = new JedisIndex(jedisPool.getResource());
         }
         return jedisIndex;
     }
@@ -48,7 +51,16 @@ public class DBFactory {
                                         .withTimeout(Duration.ofMillis(REDIS_TIMEOUT))
                                         .build();
             lettuceClient = RedisClient.create(redisURI);
+//            String ltString = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0";
+//            lettuceClient = RedisClient.create(ltString);
         }
-        return new LettuceIndex(lettuceClient);
+
+        return new LettuceIndex(lettuceClient.connect());
+    }
+
+    public void close() {
+        if (lettuceClient != null) {
+            lettuceClient.shutdown();
+        }
     }
 }

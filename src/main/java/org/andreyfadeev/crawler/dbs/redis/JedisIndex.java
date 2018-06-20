@@ -125,7 +125,6 @@ public class JedisIndex implements Index {
 	    List<String> terms = new ArrayList<>();
 		System.out.println("Putting terms in index: ");
 		System.out.println(tc);
-//		Transaction t = jedis.multi();
 
 		String url = tc.getLabel();
 		String hashName = termCounterKey(url);

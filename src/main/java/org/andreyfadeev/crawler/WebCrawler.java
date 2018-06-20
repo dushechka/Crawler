@@ -1,5 +1,6 @@
 package org.andreyfadeev.crawler;
 
+import org.andreyfadeev.crawler.dbs.redis.LettuceIndex;
 import org.andreyfadeev.crawler.interfaces.Crawler;
 import org.andreyfadeev.crawler.interfaces.Index;
 import org.andreyfadeev.crawler.dbs.DBFactory;
@@ -334,6 +335,8 @@ public class WebCrawler {
             DBFactory dbFactory = new DBFactory();
             WebCrawler wc = new WebCrawler();
             wc.setProperties();
+//            Index index = dbFactory.getLettuceIndex();
+//            index.isIndexed("https://lenta.ru/news/2016/11/06/monte/");
             wc.parseInput(args, dbFactory);
 //            URL url = new URL("https://lenta.ru/news/2018/05/24/putin_vs_trump/");
 //            System.out.println(ArticleExtractor.INSTANCE.getText(url));

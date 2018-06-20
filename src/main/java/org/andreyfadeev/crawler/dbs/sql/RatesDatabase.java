@@ -499,4 +499,12 @@ public class RatesDatabase {
         }
         return result;
     }
+
+    public void close() {
+        try {
+            conn.close();
+        } catch (SQLException exc) {
+            exc.printStackTrace();
+        }
+    }
 }
