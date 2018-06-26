@@ -1,12 +1,10 @@
 package org.andreyfadeev.crawler;
 
-import de.l3s.boilerpipe.extractors.ArticleExtractor;
-import org.andreyfadeev.crawler.dbs.redis.LettuceIndex;
-import org.andreyfadeev.crawler.interfaces.Crawler;
-import org.andreyfadeev.crawler.interfaces.Index;
 import org.andreyfadeev.crawler.dbs.DBFactory;
 import org.andreyfadeev.crawler.dbs.sql.RatesDatabase;
 import org.andreyfadeev.crawler.dbs.sql.orm.Page;
+import org.andreyfadeev.crawler.interfaces.Crawler;
+import org.andreyfadeev.crawler.interfaces.Index;
 import org.andreyfadeev.crawler.interfaces.TermContainer;
 
 import java.io.BufferedReader;
@@ -14,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -271,11 +268,11 @@ public class WebCrawler {
         if (args.length == 0) {
             System.out.println("Usage: java Crawler -<param>\n");
             System.out.println("List of available parameters:");
-            System.out.println("-rdx - reindex persons page ranks from previously saved vocabularies;");
             System.out.println("-irl - insert links to robots.txt in database for found new sites;");
             System.out.println("-frl - fetch links from robots.txt's and save them to the database;");
             System.out.println("-fsl - fetch links from unscanned sitemaps, found in db and save them;");
             System.out.println("-pul - parse unscanned pages, found in database, and save words from them;");
+            System.out.println("-rdx - reindex persons page ranks from previously saved vocabularies;");
             System.out.println("-all - run whole cycle of crawling;");
             System.out.println("-rtm <number> - set redis time-out;");
             System.out.println("-lpc <number> - set number of links to process at a time.");
