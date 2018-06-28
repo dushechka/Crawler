@@ -186,6 +186,7 @@ public class RatesDatabase {
         while (rs.next()) {
             links.add(rs.getString("URL"));
         }
+        stmt.close();
         return links;
     }
 
@@ -203,6 +204,25 @@ public class RatesDatabase {
         }
         rs.close();
         return pages;
+    }
+
+    /**
+     * Gets unscanned links to sitmep.xml from database.
+     *
+     * @return Unscanned links to sitmep.xml files.
+     * @throws SQLException
+     */
+    public Set<String> getUnscannedSitemapLinks(int siteId) throws SQLException {
+        Set<String> links = new HashSet<>();
+        PreparedStatement pst = conn.prepareStatement(
+                "SELECT URL FROM pages WHERE URL LIKE '%sitemap%xml%' AND lastScanDate IS NULL AND siteID = ?");
+        pst.setInt(1, siteId);
+        ResultSet rs = pst.executeQuery();
+        while (rs.next()) {
+            links.add(rs.getString("URL"));
+        }
+        pst.close();
+        return links;
     }
 
     public Set<Page> getUnscannedSinglePages() throws SQLException {

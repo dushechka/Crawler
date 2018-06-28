@@ -1,5 +1,6 @@
 package org.andreyfadeev.crawler;
 
+import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import org.andreyfadeev.crawler.dbs.DBFactory;
 import org.andreyfadeev.crawler.dbs.sql.RatesDatabase;
 import org.andreyfadeev.crawler.dbs.sql.orm.Page;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -322,7 +324,7 @@ public class WebCrawler {
         parseUnscannedPages(rdb, dbFactory.getIndex());
     }
 
-    private void setProperties() throws IOException{
+    private void setProperties() throws IOException {
         String filename = MYSQL_PROPS_FILENAME;
         InputStream in = getClass().getResourceAsStream(MYSQL_PROPS_FILENAME);
         BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -351,7 +353,8 @@ public class WebCrawler {
             WebCrawler wc = new WebCrawler(dbFactory);
             wc.setProperties();
             wc.parseInput(args);
-//            URL url = new URL("https://www.pravda.ru/news/society/20-06-2018/1386876-reforma-0/");
+//            URL url = new URL(
+//                    "https://kandidat.lenta.ru/#mainPage");
 //            System.out.println(ArticleExtractor.INSTANCE.getText(url));
             dbFactory.close();
         } catch (Exception exc) {
