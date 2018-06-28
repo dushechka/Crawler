@@ -66,7 +66,10 @@ public class HtmlCrawler implements Crawler {
 		int errCounter = 0;
 		for (String url : links) {
 		    try {
-		        parsed.add(crawlPage(url, index));
+		    	TermContainer tc = crawlPage(url, index);
+		    	if (tc != null) {
+		    		parsed.add(crawlPage(url, index));
+				}
 				errCounter = 0;
 			} catch (HttpStatusException | FileNotFoundException e) {
 				e.printStackTrace();

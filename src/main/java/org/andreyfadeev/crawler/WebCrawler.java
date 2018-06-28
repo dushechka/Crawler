@@ -120,9 +120,11 @@ public class WebCrawler {
         Crawler crawler = new HtmlCrawler();
         int cyclesPassed = 0;
         int errCounter = 0;
+//        int siteId = 1;
         for (int siteId : ratesDb.getSiteIds()) {
             Set<String> links;
             do {
+                // determine, whether reindexing is needed
                 if ((cyclesPassed * MAX_PAGES_PER_SCAN_CYCLE) > PAGES_BEFORE_REINDEX) {
                     cyclesPassed = 0;
                     int kwSize = keywords.size();
@@ -353,8 +355,7 @@ public class WebCrawler {
             WebCrawler wc = new WebCrawler(dbFactory);
             wc.setProperties();
             wc.parseInput(args);
-//            URL url = new URL(
-//                    "https://kandidat.lenta.ru/#mainPage");
+//            URL url = new URL("https://kandidat.lenta.ru/#mainPage");
 //            System.out.println(ArticleExtractor.INSTANCE.getText(url));
             dbFactory.close();
         } catch (Exception exc) {
