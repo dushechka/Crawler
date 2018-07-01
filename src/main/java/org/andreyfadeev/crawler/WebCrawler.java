@@ -1,6 +1,5 @@
 package org.andreyfadeev.crawler;
 
-import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import org.andreyfadeev.crawler.dbs.DBFactory;
 import org.andreyfadeev.crawler.dbs.sql.RatesDatabase;
 import org.andreyfadeev.crawler.dbs.sql.orm.Page;
@@ -13,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -28,7 +26,7 @@ public class WebCrawler {
     public static final String MYSQL_PROPS_FILENAME = "/mysql_props.txt";
     public static final String REDIS_PROPS_FILENAME = "/redis_props.txt";
     public static final int PAGES_BEFORE_REINDEX = 1000;
-    private static int MAX_PAGES_PER_SCAN_CYCLE = 10;
+    private static int PAGES_PER_SCAN_CYCLE = 10;
     private final DBFactory dbFactory;
 
     public WebCrawler(DBFactory dbFactory) {
@@ -114,7 +112,7 @@ public class WebCrawler {
     }
 
     private void parseUnscannedPages(RatesDatabase ratesDb, Index index) throws Exception {
-        System.out.println("Maximum pages to scan per cycle: " + MAX_PAGES_PER_SCAN_CYCLE);
+        System.out.println("Maximum pages to scan per cycle: " + PAGES_PER_SCAN_CYCLE);
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
         Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
         Crawler crawler = new HtmlCrawler();
@@ -125,7 +123,7 @@ public class WebCrawler {
             Set<String> links;
             do {
                 // determine, whether reindexing is needed
-                if ((cyclesPassed * MAX_PAGES_PER_SCAN_CYCLE) > PAGES_BEFORE_REINDEX) {
+                if ((cyclesPassed * PAGES_PER_SCAN_CYCLE) > PAGES_BEFORE_REINDEX) {
                     cyclesPassed = 0;
                     int kwSize = keywords.size();
                     System.out.println("\n KWSIZE: " + kwSize);
@@ -137,7 +135,7 @@ public class WebCrawler {
                     }
                 }
                 System.out.println("\nGetting links for site with id=" + siteId);
-                links = ratesDb.getBunchOfUnscannedLinks(siteId, MAX_PAGES_PER_SCAN_CYCLE);
+                links = ratesDb.getBunchOfUnscannedLinks(siteId, PAGES_PER_SCAN_CYCLE);
                 ratesDb.updateLastScanDatesByUrl(links, new Timestamp(System.currentTimeMillis()));
                 System.out.println();
                 Set<TermContainer> parsed;
@@ -292,7 +290,7 @@ public class WebCrawler {
                 }
                 if (args[i].contains("-lpc")) {
                     try {
-                        MAX_PAGES_PER_SCAN_CYCLE = Integer.parseInt(args[i + 1]);
+                        PAGES_PER_SCAN_CYCLE = Integer.parseInt(args[i + 1]);
                     } catch (NumberFormatException exc) {
                         System.out.println("Wrong number format for -lpc parameter!");
                     }

@@ -51,11 +51,11 @@ public class LinksLoader {
         }
     }
 
-    public Map<String, Timestamp> getLinksFromSitemap(String sitemap) throws IOException {
+    public Map<String, Timestamp> getLinksFromSitemap(String sitemapLink) throws IOException {
         final String UNSPECIFIED = "unspecified";
         Map<String, Timestamp> links = new HashMap<>();
         String url = UNSPECIFIED;
-        for (Element element : PageFetcher.fetchSitemapElements(sitemap)) {
+        for (Element element : PageFetcher.fetchSitemapElements(sitemapLink)) {
             Elements elts = element.getAllElements();
             for (Element elt : elts) {
                 if (elt.tagName().equals(LOC_TAG)) {
