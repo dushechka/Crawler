@@ -20,3 +20,7 @@
  under the Apache License 2.0 (http://apache.org/licenses/LICENSE-2.0.txt):
 
     - boilerpipe
+	
+ See the "modified" directory inside the 
+ included libraries to view produced modifications.
+	
