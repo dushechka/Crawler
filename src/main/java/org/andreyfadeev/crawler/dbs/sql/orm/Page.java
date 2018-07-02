@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.andreyfadeev.crawler.dbs.sql.orm;
 
 import java.sql.Timestamp;
 
+
+/**
+ * Unmodifiable pojo orm web-page interface.
+ *
+ * @author Andrey Fadeev
+ */
 public interface Page {
     int getiD();
 

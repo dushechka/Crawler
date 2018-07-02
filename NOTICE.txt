@@ -1,5 +1,5 @@
 
- crawler
+ parser
 
  Copyright (c) 2018 Andrey Fadeev
 

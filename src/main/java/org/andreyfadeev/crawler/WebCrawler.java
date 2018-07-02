@@ -17,7 +17,6 @@ package org.andreyfadeev.crawler;
 
 import org.andreyfadeev.crawler.dbs.DBFactory;
 import org.andreyfadeev.crawler.dbs.sql.orm.Page;
-import org.andreyfadeev.crawler.interfaces.Crawler;
 import org.andreyfadeev.crawler.interfaces.Index;
 import org.andreyfadeev.crawler.interfaces.RatingsDatabase;
 import org.andreyfadeev.crawler.interfaces.TermContainer;
@@ -130,7 +129,7 @@ public class WebCrawler {
         System.out.println("Maximum pages to scan per cycle: " + PAGES_PER_SCAN_CYCLE);
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
         Map<Integer, Set<String>> keywords = ratingsDb.getPersonsWithKeywords();
-        Crawler crawler = new HtmlCrawler();
+        Parser parser = new Parser();
         int cyclesPassed = 0;
         int errCounter = 0;
 //        int siteId = 1;
@@ -155,7 +154,8 @@ public class WebCrawler {
                 System.out.println();
                 Set<TermContainer> parsed;
                 try {
-                    parsed = crawler.crawlPages(links, index);
+                    parsed = parser.parsePages(links);
+                    saveRanksToIndex(parsed, index);
                     errCounter = 0;
                     updatePersonsPageRanks(keywords, parsed, ratingsDb);
                 } catch (Exception exc) {
@@ -168,6 +168,12 @@ public class WebCrawler {
                 }
                 cyclesPassed++;
             } while (!links.isEmpty());
+        }
+    }
+
+    private void saveRanksToIndex(Set<TermContainer> ranks, Index index) {
+        for (TermContainer tc : ranks) {
+            index.putTerms(tc);
         }
     }
 

@@ -15,6 +15,7 @@
  */
 package org.andreyfadeev.crawler.dbs.sql;
 
+import org.andreyfadeev.crawler.interfaces.RatingsDatabase;
 import org.andreyfadeev.crawler.dbs.sql.orm.ModifiablePage;
 import org.andreyfadeev.crawler.dbs.sql.orm.Page;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +26,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class MySqlRatingsDatabase implements org.andreyfadeev.crawler.interfaces.RatingsDatabase {
+
+/**
+ * <code>RatingsDatabase</code> interface
+ * implementation for working with MySQL database.
+ *
+ * @author Andrey Fadeev
+ */
+public class MySqlRatingsDatabase implements RatingsDatabase {
     private static final String ID_COLUMN = "ID";
     private static final String PAGES_URL_COLUMN = "URL";
     private static final String PAGES_SITE_ID_COLUMN = "siteID";

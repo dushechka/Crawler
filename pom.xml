@@ -5,12 +5,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.andreyfadeev</groupId>
-  <artifactId>crawler</artifactId>
+  <artifactId>parser</artifactId>
   <version>0.7.7</version>
   <packaging>jar</packaging>
 
-  <name>crawler</name>
-  <description>A simple web-crawler.</description>
+  <name>parser</name>
+  <description>A simple web-parser.</description>
 
   <properties>
 	<local.repository.folder>${project.basedir}/libs/</local.repository.folder>
@@ -121,7 +121,7 @@
 			<configuration>
 				<archive>
 				<manifest>
-					<mainClass>org.andreyfadeev.crawler.WebCrawler</mainClass>
+					<mainClass>org.andreyfadeev.parser.WebCrawler</mainClass>
 				</manifest>
 				</archive>
 				<descriptorRefs>

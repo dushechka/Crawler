@@ -17,6 +17,10 @@ package org.andreyfadeev.crawler.dbs.sql.orm;
 
 import java.sql.Timestamp;
 
+
+/**
+ * Modifiable pojo orm web-page class.
+ */
 public class ModifiablePage implements Page {
     private int iD;
     private String url;
