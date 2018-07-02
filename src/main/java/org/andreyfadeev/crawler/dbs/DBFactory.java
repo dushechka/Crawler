@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Andrey Fadeev
+ * Copyright (c) 2018 Andrey Fadeev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,13 @@
  */
 package org.andreyfadeev.crawler.dbs;
 
-import com.sun.org.apache.xalan.internal.xsltc.cmdline.getopt.GetOpt;
 import org.andreyfadeev.crawler.interfaces.Index;
 import org.andreyfadeev.crawler.dbs.redis.JedisIndex;
 import org.andreyfadeev.crawler.dbs.redis.LettuceIndex;
-import org.andreyfadeev.crawler.dbs.sql.RatesDatabase;
+import org.andreyfadeev.crawler.dbs.sql.MySqlRatingsDatabase;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
-import redis.clients.jedis.Jedis;
+import org.andreyfadeev.crawler.interfaces.RatingsDatabase;
 import redis.clients.jedis.JedisPool;
 
 import java.sql.Connection;
@@ -38,19 +37,19 @@ public class DBFactory {
     public static String REDIS_HOST;
     public static Integer REDIS_PORT;
     public static int REDIS_TIMEOUT = 60000;
-    private RatesDatabase ratesDatabase;
+    private RatingsDatabase ratingsDatabase;
     private RedisClient lettuceClient;
     private JedisPool jedisPool;
     private LettuceIndex lettuceIndex;
     private JedisIndex jedisIndex;
 
-    public RatesDatabase getRatesDb() throws SQLException {
-            if (ratesDatabase == null) {
+    public RatingsDatabase getRatingsDb() throws SQLException {
+            if (ratingsDatabase == null) {
                 Connection conn = DriverManager.getConnection(
                         JDBC_PREFIX + MYSQL_ADRESS, MYSQL_USERNAME, MYSQL_PASSWORD);
-                ratesDatabase = new RatesDatabase(conn);
+                ratingsDatabase = new MySqlRatingsDatabase(conn);
             }
-        return ratesDatabase;
+        return ratingsDatabase;
     }
 
     public Index getJedisIndex() {
@@ -78,7 +77,7 @@ public class DBFactory {
     }
 
     public Index getIndex() {
-        return getLettuceIndex();
+        return getJedisIndex();
     }
 
     public void close() {

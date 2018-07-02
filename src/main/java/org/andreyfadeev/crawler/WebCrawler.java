@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Andrey Fadeev
+ * Copyright (c) 2018 Andrey Fadeev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 package org.andreyfadeev.crawler;
 
 import org.andreyfadeev.crawler.dbs.DBFactory;
-import org.andreyfadeev.crawler.dbs.sql.RatesDatabase;
 import org.andreyfadeev.crawler.dbs.sql.orm.Page;
 import org.andreyfadeev.crawler.interfaces.Crawler;
 import org.andreyfadeev.crawler.interfaces.Index;
+import org.andreyfadeev.crawler.interfaces.RatingsDatabase;
 import org.andreyfadeev.crawler.interfaces.TermContainer;
 
 import java.io.BufferedReader;
@@ -52,28 +52,28 @@ public class WebCrawler {
      * Inserts links to the robots.txt file
      * for sites, that have only one link in DB.
      *
-     * @param ratesDb   Database to work with
+     * @param ratingsDb   Database to work with
      * @throws SQLException if database can't
      *                      execute some of the queries.
      */
-    private void insertLinksToRobotsPages(RatesDatabase ratesDb) throws SQLException {
-        Set<Page> pages = selectUnscannedPages(ratesDb.getSinglePages());
+    private void insertLinksToRobotsPages(RatingsDatabase ratingsDb) throws SQLException {
+        Set<Page> pages = selectUnscannedPages(ratingsDb.getSinglePages());
         for (Page page : pages) {
-            if (ratesDb.getLastScanDate(page.getUrl()) == null) {
-                ratesDb.updateLastScanDate(page.getiD(), new Timestamp(System.currentTimeMillis()));
+            if (ratingsDb.getLastScanDate(page.getUrl()) == null) {
+                ratingsDb.updateLastScanDate(page.getiD(), new Timestamp(System.currentTimeMillis()));
                 try {
                     String address = LinksLoader.getSiteAddress(page.getUrl());
                     if (LinksLoader.isSiteAvailable(address)) {
                         System.out.println("Adding robots.txt link for " + address);
                         String robotsAddress = address + ROBOTS_TXT_APPENDIX;
-                        ratesDb.insertRowInPagesTable(robotsAddress, page.getSiteId(), null);
-                        ratesDb.updateLastScanDate(page.getiD(), null);
+                        ratingsDb.insertRowInPagesTable(robotsAddress, page.getSiteId(), null);
+                        ratingsDb.updateLastScanDate(page.getiD(), null);
                     }
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 } catch (SQLException | IOException exc) {
                     exc.printStackTrace();
-                    ratesDb.updateLastScanDate(page.getiD(), null);
+                    ratingsDb.updateLastScanDate(page.getiD(), null);
                 }
             }
         }
@@ -89,35 +89,35 @@ public class WebCrawler {
         return unscanned;
     }
 
-    private void fetchLinksFromRobotsTxt(RatesDatabase ratesDb) throws SQLException {
-        Set<String> robotsTxtLinks = ratesDb.getUnscannedRobotsTxtLinks();
+    private void fetchLinksFromRobotsTxt(RatingsDatabase ratingsDb) throws SQLException {
+        Set<String> robotsTxtLinks = ratingsDb.getUnscannedRobotsTxtLinks();
         LinksLoader ln = new LinksLoader();
         for (String url : robotsTxtLinks) {
-            if (ratesDb.getLastScanDate(url) == null) {
+            if (ratingsDb.getLastScanDate(url) == null) {
                 try {
-                    ratesDb.updateLastScanDate(url, new Timestamp(System.currentTimeMillis()));
+                    ratingsDb.updateLastScanDate(url, new Timestamp(System.currentTimeMillis()));
                     Set<String> links = ln.getLinksFromRobotsTxt(url);
-                    saveLinksToDb(url, links, ratesDb);
+                    saveLinksToDb(url, links, ratingsDb);
                 } catch (Exception exc) {
                     exc.printStackTrace();
-                    ratesDb.updateLastScanDate(url, null);
+                    ratingsDb.updateLastScanDate(url, null);
                 }
             }
         }
     }
 
-    private void fetchLinksFromSitmaps(RatesDatabase ratesDb) throws SQLException {
+    private void fetchLinksFromSitmaps(RatingsDatabase ratingsDb) throws SQLException {
         LinksLoader ln = new LinksLoader();
         Set<String> links;
         do {
-            links = ratesDb.getUnscannedSitemapLinks();
+            links = ratingsDb.getUnscannedSitemapLinks();
             for (String link : links) {
-                if (ratesDb.getLastScanDate(link) == null) {
+                if (ratingsDb.getLastScanDate(link) == null) {
                     try {
-                        ratesDb.updateLastScanDate(link, new Timestamp(System.currentTimeMillis()));
-                        saveLinksToDb(link, ln.getLinksFromSitemap(link), ratesDb);
+                        ratingsDb.updateLastScanDate(link, new Timestamp(System.currentTimeMillis()));
+                        saveLinksToDb(link, ln.getLinksFromSitemap(link), ratingsDb);
                     } catch (IOException | SQLException exc) {
-                        ratesDb.updateLastScanDate(link, null);
+                        ratingsDb.updateLastScanDate(link, null);
                         exc.printStackTrace();
                         return;
                     }
@@ -126,15 +126,15 @@ public class WebCrawler {
         } while (!links.isEmpty());
     }
 
-    private void parseUnscannedPages(RatesDatabase ratesDb, Index index) throws Exception {
+    private void parseUnscannedPages(RatingsDatabase ratingsDb, Index index) throws Exception {
         System.out.println("Maximum pages to scan per cycle: " + PAGES_PER_SCAN_CYCLE);
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
-        Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
+        Map<Integer, Set<String>> keywords = ratingsDb.getPersonsWithKeywords();
         Crawler crawler = new HtmlCrawler();
         int cyclesPassed = 0;
         int errCounter = 0;
 //        int siteId = 1;
-        for (int siteId : ratesDb.getSiteIds()) {
+        for (int siteId : ratingsDb.getSiteIds()) {
             Set<String> links;
             do {
                 // determine, whether reindexing is needed
@@ -142,25 +142,25 @@ public class WebCrawler {
                     cyclesPassed = 0;
                     int kwSize = keywords.size();
                     System.out.println("\n KWSIZE: " + kwSize);
-                    keywords = ratesDb.getPersonsWithKeywords();
+                    keywords = ratingsDb.getPersonsWithKeywords();
                     System.out.println("NEW_KWSIZE: " + keywords.size());
                     System.out.println();
                     if (keywords.size() > kwSize) {
-                        reindexPageRanks(ratesDb, index);
+                        reindexPageRanks(ratingsDb, index);
                     }
                 }
                 System.out.println("\nGetting links for site with id=" + siteId);
-                links = ratesDb.getBunchOfUnscannedLinks(siteId, PAGES_PER_SCAN_CYCLE);
-                ratesDb.updateLastScanDatesByUrl(links, new Timestamp(System.currentTimeMillis()));
+                links = ratingsDb.getBunchOfUnscannedLinks(siteId, PAGES_PER_SCAN_CYCLE);
+                ratingsDb.updateLastScanDatesByUrl(links, new Timestamp(System.currentTimeMillis()));
                 System.out.println();
                 Set<TermContainer> parsed;
                 try {
                     parsed = crawler.crawlPages(links, index);
                     errCounter = 0;
-                    updatePersonsPageRanks(keywords, parsed, ratesDb);
+                    updatePersonsPageRanks(keywords, parsed, ratingsDb);
                 } catch (Exception exc) {
                     errCounter++;
-                    ratesDb.updateLastScanDatesByUrl(links, null);
+                    ratingsDb.updateLastScanDatesByUrl(links, null);
                     exc.printStackTrace();
                     if (errCounter > 7 ) {
                         throw new Exception(exc);
@@ -172,7 +172,7 @@ public class WebCrawler {
     }
 
     private void updatePersonsPageRanks(Map<Integer, Set<String>> keywords,
-                                        Set<TermContainer> pageRanks, RatesDatabase rdb) throws SQLException {
+                                        Set<TermContainer> pageRanks, RatingsDatabase rdb) throws SQLException {
         Map<Integer, Map<String, Integer>> personsPageRanks = new HashMap<>();
         for (TermContainer tc : pageRanks) {
             for (Integer personId : keywords.keySet()) {
@@ -198,17 +198,17 @@ public class WebCrawler {
         }
     }
 
-    private void reindexPageRanks(RatesDatabase ratesDb, Index index) throws SQLException{
+    private void reindexPageRanks(RatingsDatabase ratingsDb, Index index) throws SQLException{
         System.out.println("\n*** STARTING REINDEXING ***");
-        Map<Integer, Map<String, Integer>> personsPageRanks = ratesDb.getPersonsPageRanks();
-        Map<Integer, Map<String, Integer>> indexPpr = getPageRanksFromIndex(ratesDb, index);
+        Map<Integer, Map<String, Integer>> personsPageRanks = ratingsDb.getPersonsPageRanks();
+        Map<Integer, Map<String, Integer>> indexPpr = getPageRanksFromIndex(ratingsDb, index);
         for (Integer personId : personsPageRanks.keySet()) {
             Map<String, Integer> dbPageRandks = personsPageRanks.get(personId);
             Map<String, Integer> indexPageRanks = indexPpr.get(personId);
             for (String url : dbPageRandks.keySet()) {
                 indexPageRanks.remove(url);
             }
-            ratesDb.insertPersonPageRanks(personId, indexPageRanks);
+            ratingsDb.insertPersonPageRanks(personId, indexPageRanks);
         }
     }
 
@@ -220,8 +220,8 @@ public class WebCrawler {
      * @throws SQLException
      */
     private void saveLinksToDb(String url, Set<String> links,
-                                         RatesDatabase db) throws SQLException {
-        Integer siteId = db.getSiteIdByLink(url);
+                                         RatingsDatabase db) throws SQLException {
+        Integer siteId = db.getSiteId(url);
         System.out.println("Adding links to DB from " + url);
         if (siteId != null) {
             db.insertRowsInPagesTable(links, siteId, null);
@@ -236,25 +236,25 @@ public class WebCrawler {
      * @throws SQLException
      */
     private void saveLinksToDb(String url, Map<String, Timestamp> links,
-                                      RatesDatabase db) throws SQLException {
-        Integer siteId = db.getSiteIdByLink(url);
+                                      RatingsDatabase db) throws SQLException {
+        Integer siteId = db.getSiteId(url);
         System.out.println("Adding links to DB from " + url);
         if (siteId != null) {
             db.insertRowsInPagesTable(links, siteId, null);
         }
     }
 
-    private void updateAllPersonsPageRanks(RatesDatabase ratesDb, Index index) throws SQLException {
-        Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(ratesDb, index);
+    private void updateAllPersonsPageRanks(RatingsDatabase ratingsDb, Index index) throws SQLException {
+        Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(ratingsDb, index);
         for (Integer personId : personPageRanks.keySet()) {
             Map<String, Integer> ranks = personPageRanks.get(personId);
-            ratesDb.insertPersonPageRanks(personId, ranks);
+            ratingsDb.insertPersonPageRanks(personId, ranks);
         }
     }
 
     private Map<Integer, Map<String, Integer>> getPageRanksFromIndex(
-                        RatesDatabase ratesDb, Index index) throws SQLException {
-        Map<Integer, Set<String>> keywords = ratesDb.getPersonsWithKeywords();
+            RatingsDatabase ratingsDb, Index index) throws SQLException {
+        Map<Integer, Set<String>> keywords = ratingsDb.getPersonsWithKeywords();
         Map<Integer, Map<String, Integer>> pageRanks = new HashMap<>();
         for (Integer personId: keywords.keySet()) {
             Map<String, Integer> personPageRanks = new HashMap<>();
@@ -314,15 +314,15 @@ public class WebCrawler {
 
             for (String arg : args) {
                 if (arg.contains("-rdx"))
-                    reindexPageRanks(dbFactory.getRatesDb(), dbFactory.getIndex());
+                    reindexPageRanks(dbFactory.getRatingsDb(), dbFactory.getIndex());
                 if (arg.contains("-irl"))
-                    insertLinksToRobotsPages(dbFactory.getRatesDb());
+                    insertLinksToRobotsPages(dbFactory.getRatingsDb());
                 if (arg.contains("-frl"))
-                    fetchLinksFromRobotsTxt(dbFactory.getRatesDb());
+                    fetchLinksFromRobotsTxt(dbFactory.getRatingsDb());
                 if (arg.contains("-fsl"))
-                    fetchLinksFromSitmaps(dbFactory.getRatesDb());
+                    fetchLinksFromSitmaps(dbFactory.getRatingsDb());
                 if (arg.contains("-pul"))
-                    parseUnscannedPages(dbFactory.getRatesDb(), dbFactory.getIndex());
+                    parseUnscannedPages(dbFactory.getRatingsDb(), dbFactory.getIndex());
                 if (arg.contains("-all")) {
                     runWholeProgramCycle();
                 }
@@ -331,7 +331,7 @@ public class WebCrawler {
     }
 
     private void runWholeProgramCycle() throws Exception {
-        RatesDatabase rdb = dbFactory.getRatesDb();
+        RatingsDatabase rdb = dbFactory.getRatingsDb();
         reindexPageRanks(rdb, dbFactory.getIndex());
         insertLinksToRobotsPages(rdb);
         fetchLinksFromRobotsTxt(rdb);
@@ -372,6 +372,7 @@ public class WebCrawler {
 //            System.out.println(ArticleExtractor.INSTANCE.getText(url));
             dbFactory.close();
         } catch (Exception exc) {
+            System.out.println("The program was stopped abnormally.");
             exc.printStackTrace();
         }
     }

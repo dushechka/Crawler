@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Andrey Fadeev
+ * Copyright (c) 2018 Andrey Fadeev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class RatesDatabase {
-
+public class MySqlRatingsDatabase implements org.andreyfadeev.crawler.interfaces.RatingsDatabase {
     private static final String ID_COLUMN = "ID";
     private static final String PAGES_URL_COLUMN = "URL";
     private static final String PAGES_SITE_ID_COLUMN = "siteID";
@@ -42,7 +41,7 @@ public class RatesDatabase {
     private static final String RANK_COLUMN = "Rank";
     private final Connection conn;
 
-    public RatesDatabase(Connection conn) {
+    public MySqlRatingsDatabase(Connection conn) {
         this.conn = conn;
     }
 
@@ -51,6 +50,7 @@ public class RatesDatabase {
         return stmt.executeQuery("SELECT * FROM persons");
     }
 
+    @Override
     public Map<Integer, Map<String, Integer>> getPersonsPageRanks() throws SQLException {
         Map<Integer, Map<String, Integer>> personsPageRanks = new HashMap<>();
         ResultSet rs = getPersons();
@@ -75,6 +75,7 @@ public class RatesDatabase {
         return personsPageRanks;
     }
 
+    @Override
     public Map<Integer, Set<String>> getPersonsWithKeywords() throws SQLException {
         Map<Integer, Set<String>> persons = new HashMap<>();
         PreparedStatement pst = conn.prepareStatement("SELECT name FROM keywords WHERE personID = ?");
@@ -95,41 +96,24 @@ public class RatesDatabase {
         return persons;
     }
 
-    /**
-     * Get rows from "Pages" table grouped by siteID,
-     * containing <code>COUNT(*)</code> field.
-     */
     private ResultSet getPagesWithCounts() throws SQLException {
         Statement stmt = conn.createStatement();
         return stmt.executeQuery(
                 "SELECT *, COUNT(*) FROM pages GROUP BY siteID");
     }
 
-
-    /**
-     * Get rows from "Pages" table where lastScanDate is <code>NULL</code>,
-     * grouped by siteID, containing <code>COUNT(*)</code> field.
-     */
     private ResultSet getUnscannedPagesWithCounts() throws SQLException {
         Statement stmt = conn.createStatement();
         return stmt.executeQuery(
                 "SELECT *, COUNT(*) FROM pages WHERE lastScanDate IS NULL GROUP BY siteID");
     }
 
-    /**
-     * Returns amount of site's pages with <code>null</code>
-     * in lastScanDate.
-     *
-     * @param siteId id of the site for which to get pages
-     * @param limit  how much pages to extract
-     * @return unscanned leaf pages
-     * @throws SQLException
-     */
+    @Override
     public Set<String> getBunchOfUnscannedLinks(int siteId, int limit) throws SQLException {
         Set<String> links = new HashSet<>();
         PreparedStatement pst = conn.prepareStatement(
                 "SELECT URL FROM pages WHERE siteID = ? AND lastScanDate IS NULL " +
-                        "AND URL NOT LIKE '%sitemap%xml' LIMIT ?");
+                                                "AND URL NOT LIKE '%sitemap%xml' LIMIT ?");
         pst.setInt(1, siteId);
         pst.setInt(2, limit);
         ResultSet rs = pst.executeQuery();
@@ -144,6 +128,7 @@ public class RatesDatabase {
         return links;
     }
 
+    @Override
     public Set<Page> getBunchOfUnscannedPages(int siteId, int limit) throws SQLException {
         Set<Page> links = new HashSet<>();
         PreparedStatement pst = conn.prepareStatement(
@@ -170,12 +155,7 @@ public class RatesDatabase {
         return links;
     }
 
-    /**
-     * Gets unscanned links to robots.txt from database.
-     *
-     * @return Unscanned links to robots.txt files.
-     * @throws SQLException
-     */
+    @Override
     public Set<String> getUnscannedRobotsTxtLinks() throws SQLException {
         Set<String> links = new HashSet<>();
         Statement stmt = conn.createStatement();
@@ -187,12 +167,7 @@ public class RatesDatabase {
         return links;
     }
 
-    /**
-     * Gets unscanned links to sitmep.xml from database.
-     *
-     * @return Unscanned links to sitmep.xml files.
-     * @throws SQLException
-     */
+    @Override
     public Set<String> getUnscannedSitemapLinks() throws SQLException {
         Set<String> links = new HashSet<>();
         Statement stmt = conn.createStatement();
@@ -205,6 +180,7 @@ public class RatesDatabase {
         return links;
     }
 
+    @Override
     public Set<Page> getSinglePages() throws SQLException {
         Set<Page> pages = new HashSet<>();
         ResultSet rs = getPagesWithCounts();
@@ -221,12 +197,7 @@ public class RatesDatabase {
         return pages;
     }
 
-    /**
-     * Gets unscanned links to sitmep.xml from database.
-     *
-     * @return Unscanned links to sitmep.xml files.
-     * @throws SQLException
-     */
+    @Override
     public Set<String> getUnscannedSitemapLinks(int siteId) throws SQLException {
         Set<String> links = new HashSet<>();
         PreparedStatement pst = conn.prepareStatement(
@@ -240,6 +211,7 @@ public class RatesDatabase {
         return links;
     }
 
+    @Override
     public Set<Page> getUnscannedSinglePages() throws SQLException {
         Set<Page> pages = new HashSet<>();
         ResultSet rs = getUnscannedPagesWithCounts();
@@ -256,11 +228,7 @@ public class RatesDatabase {
         return pages;
     }
 
-    /**
-     * Get collection of sites with only one page from "Pages" table.
-     * @return  Site ID's
-     * @throws SQLException
-     */
+    @Override
     public Set<Integer> getSitesWithSinglePageIds() throws SQLException {
         Set<Integer> sites = new HashSet<>();
         ResultSet rs = getPagesWithCounts();
@@ -273,11 +241,7 @@ public class RatesDatabase {
         return sites;
     }
 
-    /**
-     * Get collection of sites with more than one page in "Pages" table.
-     * @return  Site ID's
-     * @throws SQLException
-     */
+    @Override
     public Set<Integer> getSitesWithMultiplePageIds() throws SQLException {
         Set<Integer> sites = new HashSet<>();
         ResultSet rs = getPagesWithCounts();
@@ -290,11 +254,7 @@ public class RatesDatabase {
         return sites;
     }
 
-    /**
-     * @param siteId
-     * @return Arbitrary link to the site
-     * @throws SQLException
-     */
+    @Override
     public @Nullable String getArbitrarySiteLink(int siteId) throws SQLException {
         String result = null;
         PreparedStatement stmt = conn.prepareStatement(
@@ -308,15 +268,7 @@ public class RatesDatabase {
         return result;
     }
 
-    /**
-     * Inserts new row in "Pages" table.
-     *
-     * @param url           URL of the page being inseted
-     * @param siteId        ID of the page's site in DB
-     * @param lastScanDate  Timestamp when page was scanned
-     *                      last time or null, if never was
-     * @throws SQLException
-     */
+    @Override
     public void insertRowInPagesTable(String url, int siteId,
                                       @Nullable Timestamp lastScanDate) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement(
@@ -332,8 +284,9 @@ public class RatesDatabase {
         stmt.close();
     }
 
+    @Override
     public void insertRowsInPagesTable(Set<String> urls, int siteId,
-                                          @Nullable Timestamp lastScanDate) throws SQLException {
+                                       @Nullable Timestamp lastScanDate) throws SQLException {
         PreparedStatement pst = conn.prepareStatement(
                 "INSERT INTO pages (URL, siteID, lastScanDate) VALUES (?, ?, ?)" );
         pst.setInt(2, siteId);
@@ -349,13 +302,7 @@ public class RatesDatabase {
         pst.close();
     }
 
-    /**
-     *
-     * @param pages  page urls with foundDateTime field timestamps
-     * @param siteId
-     * @param lastScanDate
-     * @throws SQLException
-     */
+    @Override
     public void insertRowsInPagesTable(Map<String, Timestamp> pages, int siteId,
                                        @Nullable Timestamp lastScanDate) throws SQLException {
         PreparedStatement pst = conn.prepareStatement(
@@ -369,15 +316,13 @@ public class RatesDatabase {
                 pst.setTimestamp(3, foundDateTime);
                 pst.execute();
             } catch (SQLIntegrityConstraintViolationException exc) {
-                System.out.println("Already have entry for this link: " + url);
-                System.out.println("Updating only foundDateTime in entry.");
-                updateFoundDateTime(url, foundDateTime);
                 exc.printStackTrace();
             }
         }
         pst.close();
     }
 
+    @Override
     public void updateFoundDateTime(String url, @Nullable Timestamp foundDateTime) throws SQLException {
         PreparedStatement pst = conn.prepareStatement(
                 "UPDATE pages SET foundDateTime = ? WHERE URL = ?");
@@ -387,6 +332,7 @@ public class RatesDatabase {
         pst.close();
     }
 
+    @Override
     public void updatePersonPageRank(int personId, String link, Integer rank) throws SQLException{
         Integer pageId = getPageId(link);
         if (pageId != null) {
@@ -400,6 +346,7 @@ public class RatesDatabase {
         }
     }
 
+    @Override
     public void insertPersonPageRanks(int personId, Map<String, Integer> pageRanks) throws SQLException {
         Map<String, Integer> pages = mapLinksToPageIds(pageRanks.keySet());
         PreparedStatement pst = conn.prepareStatement(
@@ -412,10 +359,6 @@ public class RatesDatabase {
                 pst.execute();
             } catch (SQLIntegrityConstraintViolationException exc) {
                 exc.printStackTrace();
-                System.out.println("Updating person page rank instead of inserting new row.");
-                Integer rank = pageRanks.get(url);
-                System.out.printf("PersonID: %d; PageURL %s; Rank: %s.", personId, url, rank);;
-                updatePersonPageRank(personId, url, rank);
             }
         }
         pst.close();
@@ -447,16 +390,8 @@ public class RatesDatabase {
         return pages;
     }
 
-    /**
-     * Gets lastScanDate timestamp from pages table
-     * in a row, where page with <code>url</code>
-     * is located.
-     *
-     * @param url link, which is present in db
-     * @return    lastScanDate timestamp
-     * @throws SQLException
-     */
-    public Timestamp getLastScanDate(String url) throws SQLException {
+    @Override
+    public @Nullable Timestamp getLastScanDate(String url) throws SQLException {
         PreparedStatement pst = conn.prepareStatement(
                 "SELECT lastScanDate FROM pages WHERE URL = ?");
         pst.setString(1, url);
@@ -464,11 +399,12 @@ public class RatesDatabase {
         if (rs.next()) {
             return rs.getTimestamp(PAGES_LAST_SCAN_DATE_COLUMN);
         }
-        return null;
+        throw new SQLException("No such link in db!");
     }
 
+    @Override
     public void updateLastScanDate(Integer pageId,
-                                    @Nullable Timestamp lastScanDate) throws SQLException{
+                                   @Nullable Timestamp lastScanDate) throws SQLException{
         PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE ID = ?");
         stmt.setTimestamp(1, lastScanDate);
             stmt.setInt(2, pageId);
@@ -476,6 +412,7 @@ public class RatesDatabase {
             stmt.close();
     }
 
+    @Override
     public void updateLastScanDate(String pageURL,
                                    @Nullable Timestamp lastScanDate) throws SQLException{
         PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE URL = ?");
@@ -485,8 +422,9 @@ public class RatesDatabase {
         stmt.close();
     }
 
+    @Override
     public void updateLastScanDates(Set<Integer> pageIds,
-                                       @Nullable Timestamp lastScanDate) throws SQLException{
+                                    @Nullable Timestamp lastScanDate) throws SQLException{
         PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE ID = ?");
         stmt.setTimestamp(1, lastScanDate);
         for (Integer id : pageIds) {
@@ -496,8 +434,9 @@ public class RatesDatabase {
         stmt.close();
     }
 
+    @Override
     public void updateLastScanDatesByUrl(Set<String> pageUrls,
-                                    @Nullable Timestamp lastScanDate) throws SQLException{
+                                         @Nullable Timestamp lastScanDate) throws SQLException{
         PreparedStatement stmt = conn.prepareStatement("UPDATE pages SET lastScanDate = ? WHERE URL = ?");
         stmt.setTimestamp(1, lastScanDate);
         for (String url : pageUrls ) {
@@ -507,12 +446,7 @@ public class RatesDatabase {
         stmt.close();
     }
 
-    /**
-     * Reads all site IDs from the database
-     *
-     * @return All of the site IDs from the base
-     * @throws SQLException
-     */
+    @Override
     public Set<Integer> getSiteIds() throws SQLException {
         Set<Integer> siteIds = new HashSet<>();
         Statement stmt = conn.createStatement();
@@ -524,7 +458,8 @@ public class RatesDatabase {
         return siteIds;
     }
 
-    public Integer getSiteIdByLink(String link) throws SQLException {
+    @Override
+    public Integer getSiteId(String link) throws SQLException {
         Integer result = null;
         PreparedStatement stmt = conn.prepareStatement("SELECT siteID FROM pages WHERE URL = ?");
         stmt.setString(1, link);
@@ -535,11 +470,8 @@ public class RatesDatabase {
         return result;
     }
 
-    public void close() {
-        try {
-            conn.close();
-        } catch (SQLException exc) {
-            exc.printStackTrace();
-        }
+    @Override
+    public void close() throws SQLException {
+        conn.close();
     }
 }
