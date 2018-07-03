@@ -129,7 +129,7 @@ public class WebCrawler {
         System.out.println("Maximum pages to scan per cycle: " + PAGES_PER_SCAN_CYCLE);
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
         Map<Integer, Set<String>> keywords = ratingsDb.getPersonsWithKeywords();
-        Parser parser = new Parser();
+        HtmlParser parser = new HtmlParser();
         int cyclesPassed = 0;
         int errCounter = 0;
 //        int siteId = 1;

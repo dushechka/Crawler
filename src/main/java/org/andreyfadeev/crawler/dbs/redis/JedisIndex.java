@@ -32,7 +32,8 @@ import redis.clients.jedis.Transaction;
 import java.util.*;
 
 /**
- * Represents a Redis-backed web search index.
+ * Represents a Jedis implementation
+ * of Redis-backed web search index.
  *
  * @author Allen Downey
  * @author Andrey Fadeev
@@ -73,46 +74,22 @@ public class JedisIndex implements Index {
 		return CRAWLER_PREFIX + TERM_COUNTER_PREFIX + url;
 	}
 
-	/**
-	 * Checks whether we have a TermCounter for a given URL.
-	 *
-	 * @param url
-	 * @return
-	 */
 	@Override
 	public boolean isIndexed(String url) {
 		String redisKey = termCounterKey(url);
 		return jedis.exists(redisKey);
 	}
 
-	/**
-	 * Adds a URL to the set associated with `term`.
-	 *
-	 * @param term
-	 * @param url
-	 */
 	@Override
 	public void add(String term, String url) {
 		jedis.sadd(urlSetKey(term), url);
 	}
 
-	/**
-	 * Looks up a search term and returns a set of URLs.
-	 *
-	 * @param term
-	 * @return Set of URLs.
-	 */
 	@Override
 	public Set<String> getURLs(String term) {
 		return jedis.smembers(urlSetKey(term));
 	}
 
-	/**
-	 * Looks up a term and returns a map from URL to count.
-	 *
-	 * @param term
-	 * @return Map from URL to count.
-	 */
 	@Override
 	public Map<String, Integer> getCounts(String term) {
 		Map<String, Integer> map = new HashMap<>();
@@ -127,13 +104,6 @@ public class JedisIndex implements Index {
 		return map;
 	}
 
-	/**
-	 * Returns the number of times the given term appears at the given URL.
-	 *
-	 * @param url
-	 * @param term
-	 * @return	null, if no such entry in the index
-	 */
 	@Override
 	public @Nullable Integer getCount(String url, String term) {
 		String redisKey = termCounterKey(url);
@@ -223,7 +193,6 @@ public class JedisIndex implements Index {
 	 *
 	 * @return
 	 */
-	@Override
 	public Set<String> termSet() {
 		Set<String> keys = urlSetKeys();
 		Set<String> terms = new HashSet<>();
@@ -277,7 +246,7 @@ public class JedisIndex implements Index {
 	}
 
 	/**
-	 * Deletes all URLSet objects from the database.
+	 * Deletes all TermCounter objects from the database.
 	 *
 	 * Should be used for development and testing, not production.
 	 *
@@ -285,22 +254,6 @@ public class JedisIndex implements Index {
 	 */
 	public void deleteTermCounters() {
 		Set<String> keys = termCounterKeys();
-		Transaction t = jedis.multi();
-		for (String key: keys) {
-			t.del(key);
-		}
-		t.exec();
-	}
-
-	/**
-	 * Deletes all keys from the database.
-	 *
-	 * Should be used for development and testing, not production.
-	 *
-	 * @return
-	 */
-	public void deleteAllKeys() {
-		Set<String> keys = jedis.keys(ASTERISK);
 		Transaction t = jedis.multi();
 		for (String key: keys) {
 			t.del(key);

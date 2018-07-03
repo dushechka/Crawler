@@ -36,14 +36,14 @@ import org.jsoup.select.Elements;
 
 
 /**
- * Encapsulates a map from search term to frequency (count).
+ * Encapsulates a map from search term to
+ * frequency (count) for a specific web-page.
  *
  * @author Allen Downey
  * @author Andrey Fadeev
  *
  */
 public class TermCounter implements TermContainer {
-	private static final String LINE_SEPARATOR = "\n";
 	private Map<String, Integer> map = new HashMap<>();
 	private String label;
 
@@ -62,11 +62,6 @@ public class TermCounter implements TermContainer {
 		return label;
 	}
 
-	/**
-	 * Returns the total of all counts.
-	 *
-	 * @return
-	 */
 	@Override
 	public int size() {
 		int total = 0;
@@ -123,22 +118,11 @@ public class TermCounter implements TermContainer {
 		}
 	}
 
-	/**
-	 * Increments the counter associated with `term`.
-	 *
-	 * @param term
-	 */
 	@Override
 	public void incrementTermCount(String term) {
 		put(term, get(term) + 1);
 	}
 
-	/**
-	 * Adds a term to the map with a given count.
-	 *
-	 * @param term
-	 * @param count
-	 */
 	@Override
 	public void put(String term, int count) {
 		map.put(term, count);
@@ -168,6 +152,7 @@ public class TermCounter implements TermContainer {
 
 	@Override
 	public String toString() {
+		final String LINE_SEPARATOR = "\n";
 		StringBuilder sb = new StringBuilder();
 		sb.append("Termcounter for page: ");
 		sb.append(label);
@@ -180,9 +165,9 @@ public class TermCounter implements TermContainer {
 			sb.append(count);
 			sb.append("]");
 		}
-		sb.append("\nTotal count of words = ");
+		sb.append(LINE_SEPARATOR + "Total count of words = ");
 		sb.append(map.size());
-		sb.append("\nTotal of all counts = ");
+		sb.append(LINE_SEPARATOR + "Total of all counts = ");
 		sb.append(size());
 		sb.append(LINE_SEPARATOR);
 		return sb.toString();

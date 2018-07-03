@@ -21,7 +21,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
+/**
+ * Represents a Redis-backed web search index.
+ *
+ * @author Andrey Fadeev
+ */
 public interface Index {
+
     /**
      * Checks whether we have a TermCounter for a given URL.
      *
@@ -72,20 +79,13 @@ public interface Index {
     List<String> putTerms(TermContainer tc);
 
     /**
-     * Returns the set of terms that have been indexed.
-     *
-     * Should be used for development and testing, not production.
-     *
-     * @return
+     * Closes the connection to Redis
+     * for this specific Index object.
+     * <p>
+     *     After this method invocation,
+     *     working with Redis through this
+     *     specific object is impossible.
+     * </p>
      */
-    Set<String> termSet();
-
-    /**
-     * Prints the contents of the index.
-     *
-     * Should be used for development and testing, not production.
-     */
-    void printIndex();
-
     void close();
 }

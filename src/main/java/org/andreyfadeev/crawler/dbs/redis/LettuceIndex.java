@@ -31,7 +31,8 @@ import org.andreyfadeev.crawler.interfaces.TermContainer;
 import java.util.*;
 
 /**
- * Represents a Redis-backed web search index.
+ * Represents a Lettuce implementation
+ * of Redis-backed web search index.
  *
  * @author Allen Downey
  * @author Andrey Fadeev
@@ -70,46 +71,22 @@ public class LettuceIndex implements Index {
         return CRAWLER_PREFIX + TERM_COUNTER_PREFIX + url;
     }
 
-    /**
-     * Checks whether we have a TermCounter for a given URL.
-     *
-     * @param url
-     * @return
-     */
     @Override
     public boolean isIndexed(String url) {
         String redisKey = termCounterKey(url);
         return (syncCommands.exists(redisKey) > 0);
     }
 
-    /**
-     * Adds a URL to the set associated with `term`.
-     *
-     * @param term
-     * @param url
-     */
     @Override
     public void add(String term, String url) {
         syncCommands.sadd(urlSetKey(term), url);
     }
 
-    /**
-     * Looks up a search term and returns a set of URLs.
-     *
-     * @param term
-     * @return Set of URLs.
-     */
     @Override
     public Set<String> getURLs(String term) {
         return syncCommands.smembers(urlSetKey(term));
     }
 
-    /**
-     * Looks up a term and returns a map from URL to count.
-     *
-     * @param term
-     * @return Map from URL to count.
-     */
     @Override
     public Map<String, Integer> getCounts(String term) {
         Map<String, Integer> map = new HashMap<>();
@@ -121,13 +98,6 @@ public class LettuceIndex implements Index {
         return map;
     }
 
-    /**
-     * Returns the number of times the given term appears at the given URL.
-     *
-     * @param url
-     * @param term
-     * @return
-     */
     @Override
     public Integer getCount(String url, String term) {
         String redisKey = termCounterKey(url);
@@ -135,12 +105,6 @@ public class LettuceIndex implements Index {
         return new Integer(count);
     }
 
-    /**
-     * Adds vocabulary of page to the index.
-     *
-     * @param tc
-     * @return List of return values from Redis.
-     */
     @Override
     public List<String> putTerms(TermContainer tc) {
         List<String> terms = new ArrayList<>();
@@ -188,7 +152,6 @@ public class LettuceIndex implements Index {
      *
      * @return
      */
-    @Override
     public Set<String> termSet() {
         Set<String> keys = urlSetKeys();
         Set<String> terms = new HashSet<>();

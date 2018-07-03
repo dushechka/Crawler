@@ -17,6 +17,13 @@ package org.andreyfadeev.crawler.interfaces;
 
 import java.util.Set;
 
+
+/**
+ * Encapsulates a map from search term to frequency (count).
+ *
+ * @author Andrey Fadeev
+ *
+ */
 public interface TermContainer {
     String getLabel();
 

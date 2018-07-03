@@ -31,7 +31,7 @@ import java.util.Set;
  *
  * @author Andrey Fadeev
  */
-public class Parser {
+public class HtmlParser {
 
 	public @Nullable TermContainer parsePage(String link) throws Exception {
 		System.out.println("Crawling " + link);
@@ -43,7 +43,9 @@ public class Parser {
 			return null;
 		} else {
 			System.out.println(content);
-			return new TermCounter(link, content);
+			TermContainer tc = new TermCounter(link, content);
+			System.out.println(tc);
+			return tc;
 		}
 	}
 

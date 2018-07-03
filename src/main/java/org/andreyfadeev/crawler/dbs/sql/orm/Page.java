@@ -20,7 +20,7 @@ import java.sql.Timestamp;
 
 
 /**
- * Unmodifiable pojo orm web-page interface.
+ * Unmodifiable pojo orm web-page.
  *
  * @author Andrey Fadeev
  */

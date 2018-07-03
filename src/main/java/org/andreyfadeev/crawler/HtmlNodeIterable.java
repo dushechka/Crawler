@@ -37,8 +37,7 @@ import org.jsoup.nodes.Node;
 /**
  * Performs a depth-first traversal of a jsoup Node.
  *
- * @author Allen Downey
- * @author Andrey Fadeev
+ * @author downey
  *
  */
 public class HtmlNodeIterable implements Iterable<Node> {
@@ -56,17 +55,16 @@ public class HtmlNodeIterable implements Iterable<Node> {
 
 	@Override
 	public Iterator<Node> iterator() {
-		return new HtmlNodeIterator(root);
+		return new WikiNodeIterator(root);
 	}
 
 	/**
 	 * Inner class that implements the Iterator.
 	 *
-	 * @author Allen Downey
-	 * @author Andrey Fadeev
+	 * @author downey
 	 *
 	 */
-	private class HtmlNodeIterator implements Iterator<Node> {
+	private class WikiNodeIterator implements Iterator<Node> {
 
 		// this stack keeps track of the Nodes waiting to be visited
 		Deque<Node> stack;
@@ -76,9 +74,9 @@ public class HtmlNodeIterable implements Iterable<Node> {
 		 *
 		 * @param node
 		 */
-		public HtmlNodeIterator(Node node) {
-			stack = new ArrayDeque<>();
-		    stack.push(node);
+		public WikiNodeIterator(Node node) {
+			stack = new ArrayDeque<Node>();
+		    stack.push(root);
 		}
 
 		@Override
@@ -95,9 +93,10 @@ public class HtmlNodeIterable implements Iterable<Node> {
 
 			// otherwise pop the next Node off the stack
 			Node node = stack.pop();
+			//System.out.println(node);
 
 			// push the children onto the stack in reverse order
-			List<Node> nodes = new ArrayList<>(node.childNodes());
+			List<Node> nodes = new ArrayList<Node>(node.childNodes());
 			Collections.reverse(nodes);
 			for (Node child: nodes) {
 				stack.push(child);

@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 
 
 /**
- * Modifiable pojo orm web-page class.
+ * Modifiable pojo orm web-page.
  */
 public class ModifiablePage implements Page {
     private int iD;

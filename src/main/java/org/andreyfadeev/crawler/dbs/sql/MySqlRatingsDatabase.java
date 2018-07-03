@@ -29,7 +29,7 @@ import java.util.Set;
 
 /**
  * <code>RatingsDatabase</code> interface
- * implementation for working with MySQL database.
+ * implementation for working with MySQL db.
  *
  * @author Andrey Fadeev
  */
