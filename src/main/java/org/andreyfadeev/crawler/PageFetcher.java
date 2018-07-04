@@ -34,7 +34,7 @@ import java.util.zip.GZIPInputStream;
 
 
 /**
- *
+ * Fetches various elements of web-pages.
  *
  * @author Allen Downey
  * @author Andrey Fadeev
@@ -45,16 +45,24 @@ public class PageFetcher {
 	private static final String SITEMAP_TAG = "sitemap";
 	private static final String URL_TAG = "url";
 	private static long lastRequestTime = -1;
-	private static long minInterval = 1000;
+	private final long minInterval;
 
-	/**
-	 * Fetches and parses a URL string, returning a list of paragraph elements.
+    public PageFetcher() {
+        minInterval = 1000;
+    }
+
+    public PageFetcher(long minInterval) {
+        this.minInterval = minInterval;
+    }
+
+    /**
+	 * Fetches and parses html-page.
 	 *
-	 * @param url
-	 * @return
+	 * @param url   link to the page
+	 * @return      paragraph nodes
 	 * @throws IOException
 	 */
-	public static Elements fetchPageParagraphs(String url) throws IOException {
+	public Elements fetchPageParagraphs(String url) throws IOException {
 		sleepIfNeeded();
 
 		// download and parse the document
@@ -64,7 +72,17 @@ public class PageFetcher {
 		return doc.select(PARAGRAPH);
 	}
 
-	public static Elements fetchSitemapElements(String url) throws IOException {
+	/**
+     * Fetches and parses sitemap xml-file.
+     *<p>
+     *     Param file can be gzipped.
+     *</p>
+     *
+	 * @param url   link to the sitemap file
+	 * @return      sitemap nodes
+	 * @throws IOException
+	 */
+	public Elements fetchSitemapElements(String url) throws IOException {
 		Elements content;
 		Document doc;
 		sleepIfNeeded();
@@ -96,7 +114,7 @@ public class PageFetcher {
 	/**
 	 * Rate limits by waiting at least the minimum interval between requests.
 	 */
-	private static void sleepIfNeeded() {
+	private void sleepIfNeeded() {
 		if (lastRequestTime != -1) {
 			long currentTime = System.currentTimeMillis();
 			long nextRequestTime = lastRequestTime + minInterval;

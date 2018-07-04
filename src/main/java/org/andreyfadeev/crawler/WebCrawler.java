@@ -33,13 +33,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.andreyfadeev.crawler.LinksLoader.ROBOTS_TXT_APPENDIX;
-
 public class WebCrawler {
-
-    public static final String MYSQL_PROPS_FILENAME = "/mysql_props.txt";
-    public static final String REDIS_PROPS_FILENAME = "/redis_props.txt";
-    public static final int PAGES_BEFORE_REINDEX = 1000;
+    private static final String ROBOTS_TXT_APPENDIX = "/robots.txt";
+    private static final String MYSQL_PROPS_FILENAME = "/mysql_props.txt";
+    private static final String REDIS_PROPS_FILENAME = "/redis_props.txt";
+    private static final int PAGES_BEFORE_REINDEX = 1000;
     private static int PAGES_PER_SCAN_CYCLE = 10;
     private final DBFactory dbFactory;
 
