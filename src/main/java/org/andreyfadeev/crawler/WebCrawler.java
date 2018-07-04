@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.andreyfadeev.crawler;
 
 import org.andreyfadeev.crawler.dbs.DBFactory;
@@ -33,6 +34,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+
+/**
+ * Crawls websites and gets
+ * popularity of keywords on them.
+ *
+ * @author Andrey Fadeev
+ */
 public class WebCrawler {
     private static final String ROBOTS_TXT_APPENDIX = "/robots.txt";
     private static final String MYSQL_PROPS_FILENAME = "/mysql_props.txt";
@@ -47,11 +55,10 @@ public class WebCrawler {
 
     /**
      * Inserts links to the robots.txt file
-     * for sites, that have only one link in DB.
+     * for sites, that have only one link in db.
      *
-     * @param ratingsDb   Database to work with
-     * @throws SQLException if database can't
-     *                      execute some of the queries.
+     * @param ratingsDb     database to work with
+     * @throws SQLException
      */
     private void insertLinksToRobotsPages(RatingsDatabase ratingsDb) throws SQLException {
         Set<Page> pages = selectUnscannedPages(ratingsDb.getSinglePages());
@@ -76,6 +83,14 @@ public class WebCrawler {
         }
     }
 
+    /**
+     * Selects unscanned pages
+     * from collection.
+     *
+     * @param pages
+     * @return  Set of pages, whose
+     *          last scan dates are null.
+     */
     private Set<Page> selectUnscannedPages(Set<Page> pages) {
         Set<Page> unscanned = new HashSet<>();
         for (Page page : pages) {
@@ -86,7 +101,14 @@ public class WebCrawler {
         return unscanned;
     }
 
-    private void fetchLinksFromRobotsTxt(RatingsDatabase ratingsDb) throws SQLException {
+    /**
+     * Saves links from robots.txt files,
+     * contained in db to the same db.
+     *
+     * @param ratingsDb
+     * @throws SQLException
+     */
+    private void saveLinksFromRobotsTxt(RatingsDatabase ratingsDb) throws SQLException {
         Set<String> robotsTxtLinks = ratingsDb.getUnscannedRobotsTxtLinks();
         LinksLoader ln = new LinksLoader();
         for (String url : robotsTxtLinks) {
@@ -103,7 +125,14 @@ public class WebCrawler {
         }
     }
 
-    private void fetchLinksFromSitmaps(RatingsDatabase ratingsDb) throws SQLException {
+    /**
+     * Saves links from sitemap.xml files,
+     * contained in db to the same db.
+     *
+     * @param ratingsDb
+     * @throws SQLException
+     */
+    private void saveLinksFromSitmaps(RatingsDatabase ratingsDb) throws SQLException {
         LinksLoader ln = new LinksLoader();
         Set<String> links;
         do {
@@ -123,7 +152,17 @@ public class WebCrawler {
         } while (!links.isEmpty());
     }
 
-    private void parseUnscannedPages(RatingsDatabase ratingsDb, Index index) throws Exception {
+    /**
+     * Crawls unscanned pages from db
+     * and saves ranks for keywords
+     * to the same database.
+     *
+     * @param ratingsDb db to get links and save ranks
+     * @param index     Index to save vocabularies
+     *                  from crawled pages.
+     * @throws Exception
+     */
+    private void crawlUnscannedPages(RatingsDatabase ratingsDb, Index index) throws Exception {
         System.out.println("Maximum pages to scan per cycle: " + PAGES_PER_SCAN_CYCLE);
         System.out.println("Redis timeout: " + DBFactory.REDIS_TIMEOUT);
         Map<Integer, Set<String>> keywords = ratingsDb.getPersonsWithKeywords();
@@ -169,12 +208,27 @@ public class WebCrawler {
         }
     }
 
+    /**
+     * Saves term-rank vocabularies
+     * for web-pages to the index.
+     *
+     * @param ranks
+     * @param index
+     */
     private void saveRanksToIndex(Set<TermContainer> ranks, Index index) {
         for (TermContainer tc : ranks) {
             index.putTerms(tc);
         }
     }
 
+    /**
+     *
+     * @param keywords  Map from person id to
+     *                  the set of it's keywords.
+     * @param pageRanks
+     * @param rdb       database to save ranks
+     * @throws SQLException
+     */
     private void updatePersonsPageRanks(Map<Integer, Set<String>> keywords,
                                         Set<TermContainer> pageRanks, RatingsDatabase rdb) throws SQLException {
         Map<Integer, Map<String, Integer>> personsPageRanks = new HashMap<>();
@@ -202,6 +256,20 @@ public class WebCrawler {
         }
     }
 
+    /**
+     * Inserts to db page ranks
+     * from index for persons in db.
+     * <p>
+     *     This method inserts only
+     *     those page ranks, which
+     *     are not present in db.
+     * </p>
+     *
+     * @param ratingsDb Database to get persons and
+     *                  insert page ranks for them.
+     * @param index     index to get page ranks
+     * @throws SQLException
+     */
     private void reindexPageRanks(RatingsDatabase ratingsDb, Index index) throws SQLException{
         System.out.println("\n*** STARTING REINDEXING ***");
         Map<Integer, Map<String, Integer>> personsPageRanks = ratingsDb.getPersonsPageRanks();
@@ -218,9 +286,10 @@ public class WebCrawler {
 
     /**
      *
-     * @param url   Page url in DB, by which we can get site ID
-     * @param links
-     * @param db
+     * @param url   Page url in db, by
+     *              which we can get site id.
+     * @param links links to save in db
+     * @param db    database to save the links
      * @throws SQLException
      */
     private void saveLinksToDb(String url, Set<String> links,
@@ -234,9 +303,11 @@ public class WebCrawler {
 
     /**
      *
-     * @param url   page url in DB, by which we can get site ID
-     * @param links page urls with foundDateTime field timestamps
-     * @param db
+     * @param url   Page url in db, by
+     *              which we can get site id.
+     * @param links Page urls with
+     *              creation timestamps.
+     * @param db    database to save the links
      * @throws SQLException
      */
     private void saveLinksToDb(String url, Map<String, Timestamp> links,
@@ -248,6 +319,14 @@ public class WebCrawler {
         }
     }
 
+    /**
+     * Inserts to db all page ranks
+     * from index for persons in db.
+     *
+     * @param ratingsDb
+     * @param index
+     * @throws SQLException
+     */
     private void updateAllPersonsPageRanks(RatingsDatabase ratingsDb, Index index) throws SQLException {
         Map<Integer, Map<String, Integer>> personPageRanks = getPageRanksFromIndex(ratingsDb, index);
         for (Integer personId : personPageRanks.keySet()) {
@@ -256,6 +335,15 @@ public class WebCrawler {
         }
     }
 
+    /**
+     * Gets all page ranks for
+     * persons in db from index.
+     *
+     * @param ratingsDb database, containing persons
+     * @param index     index, containing page ranks
+     * @return
+     * @throws SQLException
+     */
     private Map<Integer, Map<String, Integer>> getPageRanksFromIndex(
             RatingsDatabase ratingsDb, Index index) throws SQLException {
         Map<Integer, Set<String>> keywords = ratingsDb.getPersonsWithKeywords();
@@ -277,6 +365,14 @@ public class WebCrawler {
         return pageRanks;
     }
 
+    /**
+     * Inserts values from source map
+     * to target, or only adds values
+     * if such keys are already present.
+     *
+     * @param source
+     * @param target
+     */
     private void putOrUpdate(Map<String, Integer> source, Map<String, Integer> target) {
         for (Map.Entry<String, Integer> entry : source.entrySet()) {
             String key = entry.getKey();
@@ -285,6 +381,13 @@ public class WebCrawler {
         }
     }
 
+    /**
+     * Runs this object methods,
+     * according to the input args.
+     *
+     * @param args
+     * @throws Exception
+     */
     private void parseInput(String[] args) throws Exception {
         if (args.length == 0) {
             System.out.println("Usage: java Crawler -<param>\n");
@@ -322,11 +425,11 @@ public class WebCrawler {
                 if (arg.contains("-irl"))
                     insertLinksToRobotsPages(dbFactory.getRatingsDb());
                 if (arg.contains("-frl"))
-                    fetchLinksFromRobotsTxt(dbFactory.getRatingsDb());
+                    saveLinksFromRobotsTxt(dbFactory.getRatingsDb());
                 if (arg.contains("-fsl"))
-                    fetchLinksFromSitmaps(dbFactory.getRatingsDb());
+                    saveLinksFromSitmaps(dbFactory.getRatingsDb());
                 if (arg.contains("-pul"))
-                    parseUnscannedPages(dbFactory.getRatingsDb(), dbFactory.getIndex());
+                    crawlUnscannedPages(dbFactory.getRatingsDb(), dbFactory.getIndex());
                 if (arg.contains("-all")) {
                     runWholeProgramCycle();
                 }
@@ -334,15 +437,26 @@ public class WebCrawler {
         }
     }
 
+    /**
+     * Runs whole cycle of crawling.
+     *
+     * @throws Exception
+     */
     private void runWholeProgramCycle() throws Exception {
         RatingsDatabase rdb = dbFactory.getRatingsDb();
         reindexPageRanks(rdb, dbFactory.getIndex());
         insertLinksToRobotsPages(rdb);
-        fetchLinksFromRobotsTxt(rdb);
-        fetchLinksFromSitmaps(rdb);
-        parseUnscannedPages(rdb, dbFactory.getIndex());
+        saveLinksFromRobotsTxt(rdb);
+        saveLinksFromSitmaps(rdb);
+        crawlUnscannedPages(rdb, dbFactory.getIndex());
     }
 
+    /**
+     * Sets class constants according
+     * to the property files content.
+     *
+     * @throws IOException
+     */
     private void setProperties() throws IOException {
         String filename = MYSQL_PROPS_FILENAME;
         InputStream in = getClass().getResourceAsStream(MYSQL_PROPS_FILENAME);
