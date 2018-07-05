@@ -56,7 +56,7 @@ public class PageFetcher {
     }
 
     /**
-	 * Fetches and parses html-page.
+	 * Fetches html-page paragraphs.
 	 *
 	 * @param url   link to the page
 	 * @return      paragraph nodes
@@ -73,7 +73,7 @@ public class PageFetcher {
 	}
 
 	/**
-     * Fetches and parses sitemap xml-file.
+     * Fetches sitemap elements.
      *<p>
      *     Param file can be gzipped.
      *</p>
