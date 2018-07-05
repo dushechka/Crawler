@@ -1,4 +1,3 @@
-
 =============================
 
 Crawler  
@@ -12,7 +11,8 @@ License: Apache v2.0
 This program scans given websites, that you will specify, saves   
 vocabularies from articles on them in Redis db, and fetchs amount of  
 keywords occurences for each person, that you specify in MySQL database.  
-
+  
+  
 Installation:  
 
 1) You'll need to create MySQL or MariaDB database, using script  
