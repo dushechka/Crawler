@@ -37,7 +37,7 @@ import java.util.Set;
 
 /**
  * Crawls websites and gets
- * popularity of keywords on them.
+ * popularity of persons on them.
  *
  * @author Andrey Fadeev
  */
@@ -49,8 +49,9 @@ public class WebCrawler {
     private static int PAGES_PER_SCAN_CYCLE = 10;
     private final DBFactory dbFactory;
 
-    public WebCrawler(DBFactory dbFactory) {
+    public WebCrawler(DBFactory dbFactory) throws IOException {
         this.dbFactory = dbFactory;
+        setProperties();
     }
 
     /**
@@ -108,7 +109,7 @@ public class WebCrawler {
      * @param ratingsDb
      * @throws SQLException
      */
-    private void saveLinksFromRobotsTxt(RatingsDatabase ratingsDb) throws SQLException {
+    private void fetchLinksFromRobotsTxt(RatingsDatabase ratingsDb) throws SQLException {
         Set<String> robotsTxtLinks = ratingsDb.getUnscannedRobotsTxtLinks();
         LinksLoader ln = new LinksLoader();
         for (String url : robotsTxtLinks) {
@@ -132,7 +133,7 @@ public class WebCrawler {
      * @param ratingsDb
      * @throws SQLException
      */
-    private void saveLinksFromSitmaps(RatingsDatabase ratingsDb) throws SQLException {
+    private void fetchLinksFromSitemaps(RatingsDatabase ratingsDb) throws SQLException {
         LinksLoader ln = new LinksLoader();
         Set<String> links;
         do {
@@ -154,7 +155,7 @@ public class WebCrawler {
 
     /**
      * Crawls unscanned pages from db
-     * and saves ranks for keywords
+     * and saves ranks for persons
      * to the same database.
      *
      * @param ratingsDb db to get links and save ranks
@@ -239,7 +240,7 @@ public class WebCrawler {
                     Integer count = tc.get(word.toLowerCase());
                     if (count > 0) {
                         System.out.println("Found entries for word " + word + ":");
-                        System.out.printf("URL: %S, Count: %s\n", tc.getLabel(), count);
+                        System.out.printf("URL: %s, Count: %s\n", tc.getLabel(), count);
                         ppr.merge(tc.getLabel(), count, (first, second) -> first + second);
                     }
                 }
@@ -354,7 +355,7 @@ public class WebCrawler {
             for (String word : keywords.get(personId)) {
                 System.out.println("Getting counts for word: " + word);
                 Map<String, Integer> counts = index.getCounts(word.toLowerCase());
-                putOrUpdate(counts, personPageRanks);
+                putOrAdd(counts, personPageRanks);
             }
             System.out.println("\nAll page ranks for person with ID = " + personId);
             for (String url : personPageRanks.keySet()) {
@@ -373,7 +374,7 @@ public class WebCrawler {
      * @param source
      * @param target
      */
-    private void putOrUpdate(Map<String, Integer> source, Map<String, Integer> target) {
+    private void putOrAdd(Map<String, Integer> source, Map<String, Integer> target) {
         for (Map.Entry<String, Integer> entry : source.entrySet()) {
             String key = entry.getKey();
             Integer value = entry.getValue();
@@ -389,19 +390,22 @@ public class WebCrawler {
      * @throws Exception
      */
     private void parseInput(String[] args) throws Exception {
-        if (args.length == 0) {
-            System.out.println("Usage: java Crawler -<param>\n");
-            System.out.println("List of available parameters:");
-            System.out.println("-irl - insert links to robots.txt in database for found new sites;");
-            System.out.println("-frl - fetch links from robots.txt's and save them to the database;");
-            System.out.println("-fsl - fetch links from unscanned sitemaps, found in db and save them;");
-            System.out.println("-pul - parse unscanned pages, found in database, and save words from them;");
-            System.out.println("-rdx - reindex persons page ranks from previously saved vocabularies;");
-            System.out.println("-all - run whole cycle of crawling;");
-            System.out.println("-rtm <number> - set redis time-out;");
-            System.out.println("-lpc <number> - set number of links to process at a time.");
-        } else {
-
+        if (args.length > 0) {
+            for (String arg : args) {
+                if (arg.contains("-rdx"))
+                    reindexPageRanks(dbFactory.getRatingsDb(), dbFactory.getIndex());
+                if (arg.contains("-irl"))
+                    insertLinksToRobotsPages(dbFactory.getRatingsDb());
+                if (arg.contains("-frl"))
+                    fetchLinksFromRobotsTxt(dbFactory.getRatingsDb());
+                if (arg.contains("-fsl"))
+                    fetchLinksFromSitemaps(dbFactory.getRatingsDb());
+                if (arg.contains("-cul"))
+                    crawlUnscannedPages(dbFactory.getRatingsDb(), dbFactory.getIndex());
+                if (arg.contains("-all")) {
+                    runWholeProgramCycle();
+                }
+            }
             for (int i = 0; i < args.length; i++) {
                 if (args[i].contains("-rtm")) {
                     try {
@@ -418,23 +422,22 @@ public class WebCrawler {
                     }
                 }
             }
-
-            for (String arg : args) {
-                if (arg.contains("-rdx"))
-                    reindexPageRanks(dbFactory.getRatingsDb(), dbFactory.getIndex());
-                if (arg.contains("-irl"))
-                    insertLinksToRobotsPages(dbFactory.getRatingsDb());
-                if (arg.contains("-frl"))
-                    saveLinksFromRobotsTxt(dbFactory.getRatingsDb());
-                if (arg.contains("-fsl"))
-                    saveLinksFromSitmaps(dbFactory.getRatingsDb());
-                if (arg.contains("-pul"))
-                    crawlUnscannedPages(dbFactory.getRatingsDb(), dbFactory.getIndex());
-                if (arg.contains("-all")) {
-                    runWholeProgramCycle();
-                }
-            }
+        } else {
+            printUsage();
         }
+    }
+
+    private void printUsage() {
+        System.out.println("Usage: java Crawler -<param>\n");
+        System.out.println("List of available parameters:");
+        System.out.println("-irl - insert links to robots.txt in database for found new sites;");
+        System.out.println("-frl - fetch links from robots.txt's and save them to the database;");
+        System.out.println("-fsl - fetch links from unscanned sitemaps, found in db and save them;");
+        System.out.println("-cul - crawl unscanned pages, found in database, and save words from them;");
+        System.out.println("-rdx - reindex persons page ranks from previously saved vocabularies;");
+        System.out.println("-all - run whole cycle of crawling;");
+        System.out.println("-rtm <number> - set redis time-out;");
+        System.out.println("-lpc <number> - set number of links to process at a time.");
     }
 
     /**
@@ -446,8 +449,8 @@ public class WebCrawler {
         RatingsDatabase rdb = dbFactory.getRatingsDb();
         reindexPageRanks(rdb, dbFactory.getIndex());
         insertLinksToRobotsPages(rdb);
-        saveLinksFromRobotsTxt(rdb);
-        saveLinksFromSitmaps(rdb);
+        fetchLinksFromRobotsTxt(rdb);
+        fetchLinksFromSitemaps(rdb);
         crawlUnscannedPages(rdb, dbFactory.getIndex());
     }
 
@@ -484,11 +487,10 @@ public class WebCrawler {
         try {
             DBFactory dbFactory = new DBFactory();
             WebCrawler wc = new WebCrawler(dbFactory);
-            wc.setProperties();
             wc.parseInput(args);
 //            URL url = new URL("https://kandidat.lenta.ru/#mainPage");
 //            System.out.println(ArticleExtractor.INSTANCE.getText(url));
-            dbFactory.close();
+//            dbFactory.close();
         } catch (Exception exc) {
             System.out.println("The program was stopped abnormally.");
             exc.printStackTrace();
