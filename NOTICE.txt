@@ -21,6 +21,6 @@
 
     - boilerpipe
 	
- See the "modified" directory inside the 
- included libraries to view produced modifications.
 	
+ See the "modified" directory inside the included libraries to view produced modifications.
+	  
